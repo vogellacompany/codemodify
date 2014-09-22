@@ -118,7 +118,7 @@ public class JUnit4Converter {
 	}
 
 	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter,
-			ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
+			final ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
 		MethodDeclaration[] methods = typeDeclaration.getMethods();
 		for (MethodDeclaration methodDeclaration : methods) {
 			SimpleName name = methodDeclaration.getName();
@@ -128,6 +128,8 @@ public class JUnit4Converter {
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, TEST_ANNOTATION_NAME);
 				importRewrite.addImport("org.junit.Test");
+				methodDeclaration.accept(new StaticAssertImportVisitor(
+						importRewrite));
 				modifiedDocument = true;
 			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
 				createMarkerAnnotation(ast, rewriter,
