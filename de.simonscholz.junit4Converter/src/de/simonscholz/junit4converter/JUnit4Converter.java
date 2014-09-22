@@ -31,13 +31,21 @@ import org.eclipse.text.edits.TextEdit;
 
 public class JUnit4Converter {
 
+	private static final String TEST_ANNOTATION_QUALIFIED_NAME = "org.junit.Test";
+	private static final String TEST_ANNOTATION_NAME = "Test";
+	private static final String BEFORE_ANNOTATION_QUALIFIED_NAME = "org.junit.Before";
+	private static final String BEFORE_ANNOTATION_NAME = "Before";
+	private static final String AFTER_ANNOTATION_QUALIFIED_NAME = "org.junit.After";
+	private static final String AFTER_ANNOTATION_NAME = "After";
+
+	private static final String TEST_CASE_QUALIFIED_NAME = "junit.framework.TestCase";
 	private static final String TEST_CASE_CLASSNAME = "TestCase";
+
 	private static final String SET_UP_METHOD_NAME = "setUp";
 	private static final String TEAR_DOWN_METHOD_NAME = "tearDown";
-	private static final String TEST_ANNOTATION_NAME = "Test";
-	private static final String BEFORE_ANNOTATION_NAME = "Before";
-	private static final String AFTER_ANNOTATION_NAME = "After";
+
 	private static final String TEST_METHOD_PREFIX = "test";
+
 	private boolean modifiedDocument;
 
 	public void convert(IJavaProject javaProject,
@@ -128,7 +136,7 @@ public class JUnit4Converter {
 					TEST_METHOD_PREFIX)) {
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, TEST_ANNOTATION_NAME);
-				importRewrite.addImport("org.junit.Test");
+				importRewrite.addImport(TEST_ANNOTATION_QUALIFIED_NAME);
 				methodDeclaration.accept(new StaticAssertImportVisitor(
 						importRewrite));
 				modifiedDocument = true;
@@ -137,14 +145,14 @@ public class JUnit4Converter {
 						methodDeclaration, BEFORE_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter,
 						methodDeclaration);
-				importRewrite.addImport("org.junit.Before");
+				importRewrite.addImport(BEFORE_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, AFTER_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter,
 						methodDeclaration);
-				importRewrite.addImport("org.junit.After");
+				importRewrite.addImport(AFTER_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			}
 		}
@@ -159,7 +167,7 @@ public class JUnit4Converter {
 			if (TEST_CASE_CLASSNAME.equals(superType.getName()
 					.getFullyQualifiedName())) {
 				rewriter.remove(superType, null);
-				importRewrite.removeImport("junit.framework.TestCase");
+				importRewrite.removeImport(TEST_CASE_QUALIFIED_NAME);
 				modifiedDocument = true;
 			}
 		}
