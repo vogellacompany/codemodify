@@ -88,7 +88,8 @@ public class JUnit4Converter {
 			if (object instanceof TypeDeclaration) {
 				TypeDeclaration typeDeclaration = (TypeDeclaration) object;
 
-				removeTestCaseSuperclass(rewriter, typeDeclaration);
+				removeTestCaseSuperclass(rewriter, importRewrite,
+						typeDeclaration);
 
 				convertTestMethods(ast, rewriter, importRewrite,
 						typeDeclaration);
@@ -149,15 +150,16 @@ public class JUnit4Converter {
 		}
 	}
 
-	protected void removeTestCaseSuperclass(final ASTRewrite rewriter,
+	protected void removeTestCaseSuperclass(ASTRewrite rewriter,
+			ImportRewrite importRewrite,
 			TypeDeclaration typeDeclaration) {
 		Type superclassType = typeDeclaration.getSuperclassType();
-		if (superclassType.isSimpleType()) {
+		if (superclassType != null && superclassType.isSimpleType()) {
 			SimpleType superType = (SimpleType) superclassType;
-			System.out.println(superType.getName());
 			if (TEST_CASE_CLASSNAME.equals(superType.getName()
 					.getFullyQualifiedName())) {
 				rewriter.remove(superType, null);
+				importRewrite.removeImport("junit.framework.TestCase");
 				modifiedDocument = true;
 			}
 		}
