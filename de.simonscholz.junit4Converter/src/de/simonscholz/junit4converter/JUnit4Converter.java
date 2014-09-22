@@ -11,6 +11,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -31,6 +32,7 @@ import org.eclipse.text.edits.TextEdit;
 
 public class JUnit4Converter {
 
+	private static final String OVERRIDE_ANNOTATION_NAME = "Override";
 	private static final String TEST_ANNOTATION_QUALIFIED_NAME = "org.junit.Test";
 	private static final String TEST_ANNOTATION_NAME = "Test";
 	private static final String BEFORE_ANNOTATION_QUALIFIED_NAME = "org.junit.Before";
@@ -141,6 +143,8 @@ public class JUnit4Converter {
 						importRewrite));
 				modifiedDocument = true;
 			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
+				removeAnnotation(rewriter, methodDeclaration,
+						OVERRIDE_ANNOTATION_NAME);
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, BEFORE_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter,
@@ -148,6 +152,8 @@ public class JUnit4Converter {
 				importRewrite.addImport(BEFORE_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
+				removeAnnotation(rewriter, methodDeclaration,
+						OVERRIDE_ANNOTATION_NAME);
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, AFTER_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter,
@@ -190,8 +196,8 @@ public class JUnit4Converter {
 		}
 	}
 
-	protected void createMarkerAnnotation(final AST ast,
-			final ASTRewrite rewriter, MethodDeclaration methodDeclaration,
+	protected void createMarkerAnnotation(AST ast,
+			ASTRewrite rewriter, MethodDeclaration methodDeclaration,
 			String annotationName) {
 		if (!isAnnotationExisting(methodDeclaration.modifiers(), annotationName)) {
 			MarkerAnnotation testAnnotation = ast.newMarkerAnnotation();
@@ -202,11 +208,25 @@ public class JUnit4Converter {
 			listRewrite.insertFirst(testAnnotation, null);
 		}
 	}
+	
+	protected void removeAnnotation(ASTRewrite rewriter,
+			MethodDeclaration methodDeclaration, String annotationName) {
+		List modifiers = methodDeclaration.modifiers();
+		for (Object object : modifiers) {
+			if (object instanceof Annotation) {
+				Annotation annotation = (Annotation) object;
+				Name typeName = annotation.getTypeName();
+				if (annotationName.equals(typeName.getFullyQualifiedName())) {
+					rewriter.remove(annotation, null);
+				}
+			}
+		}
+	}
 
 	protected boolean isAnnotationExisting(List modifiers, String annotationName) {
 		for (Object modifier : modifiers) {
-			if (modifier instanceof MarkerAnnotation) {
-				MarkerAnnotation markerAnnotation = (MarkerAnnotation) modifier;
+			if (modifier instanceof Annotation) {
+				Annotation markerAnnotation = (Annotation) modifier;
 				Name typeName = markerAnnotation.getTypeName();
 				String fullyQualifiedName = typeName.getFullyQualifiedName();
 				return annotationName.equals(fullyQualifiedName);
