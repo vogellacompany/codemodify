@@ -3,6 +3,19 @@ eclipseJUnit4Converter
 
 This Plugin can be used to convert JUnit 3 TestCases to JUnit 4 TestCases
 
+Features
+========
+
+- Removes TestCase parent class and the "junit.framework.TestCase" import
+- setUp method
+  - adds @Before annotation and its import
+  - makes method public
+- tearDown method
+  - adds @After annotation and its import
+  - makes method public
+- test methods
+  - adds @Test annotations and its import
+  - Adds static imports for the assert* methods
 
 Usage
 =====
