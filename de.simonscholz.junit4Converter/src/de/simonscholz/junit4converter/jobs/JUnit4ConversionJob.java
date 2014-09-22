@@ -36,7 +36,7 @@ public class JUnit4ConversionJob extends Job {
 				} else if (object instanceof IPackageFragment) {
 					getConverter().convert((IPackageFragment) object, monitor);
 				} else if (object instanceof ICompilationUnit) {
-					getConverter().convert((ICompilationUnit) object);
+					getConverter().convert((ICompilationUnit) object, monitor);
 				}
 			}
 		} catch (MalformedTreeException | BadLocationException | CoreException e) {

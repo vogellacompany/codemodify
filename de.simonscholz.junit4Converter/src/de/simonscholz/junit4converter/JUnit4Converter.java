@@ -19,6 +19,7 @@ import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
+import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
@@ -57,12 +58,12 @@ public class JUnit4Converter {
 				+ packageFragment.getElementName(), compilationUnits.length);
 		AtomicInteger atomicInteger = new AtomicInteger();
 		for (ICompilationUnit compilationUnit : compilationUnits) {
-			convert(compilationUnit);
+			convert(compilationUnit, progressMonitor);
 			progressMonitor.worked(atomicInteger.incrementAndGet());
 		}
 	}
 
-	public void convert(ICompilationUnit cu) throws MalformedTreeException,
+	public void convert(ICompilationUnit cu, IProgressMonitor monitor) throws MalformedTreeException,
 			BadLocationException, CoreException, BadLocationException {
 
 		// parse compilation unit
@@ -73,6 +74,7 @@ public class JUnit4Converter {
 		// create a ASTRewrite
 		final AST ast = astRoot.getAST();
 		final ASTRewrite rewriter = ASTRewrite.create(ast);
+		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		boolean modifiedDocument = false;
 
 		List types = astRoot.types();
@@ -88,18 +90,21 @@ public class JUnit4Converter {
 							TEST_METHOD_PREFIX)) {
 						createMarkerAnnotation(ast, rewriter,
 								methodDeclaration, TEST_ANNOTATION_NAME);
+						importRewrite.addImport("org.junit.Test");
 						modifiedDocument = true;
 					} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
 						createMarkerAnnotation(ast, rewriter,
 								methodDeclaration, BEFORE_ANNOTATION_NAME);
 						convertProtectedToPublic(ast, rewriter,
 								methodDeclaration);
+						importRewrite.addImport("org.junit.Before");
 						modifiedDocument = true;
 					} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
 						createMarkerAnnotation(ast, rewriter,
 								methodDeclaration, AFTER_ANNOTATION_NAME);
 						convertProtectedToPublic(ast, rewriter,
 								methodDeclaration);
+						importRewrite.addImport("org.junit.After");
 						modifiedDocument = true;
 					}
 				}
@@ -107,11 +112,14 @@ public class JUnit4Converter {
 		}
 
 		if (modifiedDocument) {
-			final TextEdit edits = rewriter.rewriteAST();
+			TextEdit importEdits = importRewrite.rewriteImports(monitor);
+			TextEdit edits = rewriter.rewriteAST();
+			importEdits.addChild(edits);
 
 			// apply the text edits to the compilation unit
-			final Document document = new Document(cu.getSource());
-			edits.apply(document);
+			Document document = new Document(cu.getSource());
+			importEdits.apply(document);
+			// edits.apply(document);
 
 			// this is the code for adding statements
 			cu.getBuffer().setContents(document.get());
