@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -17,6 +18,8 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
@@ -28,12 +31,14 @@ import org.eclipse.text.edits.TextEdit;
 
 public class JUnit4Converter {
 
+	private static final String TEST_CASE_CLASSNAME = "TestCase";
 	private static final String SET_UP_METHOD_NAME = "setUp";
 	private static final String TEAR_DOWN_METHOD_NAME = "tearDown";
 	private static final String TEST_ANNOTATION_NAME = "Test";
 	private static final String BEFORE_ANNOTATION_NAME = "Before";
 	private static final String AFTER_ANNOTATION_NAME = "After";
 	private static final String TEST_METHOD_PREFIX = "test";
+	private boolean modifiedDocument;
 
 	public void convert(IJavaProject javaProject,
 			IProgressMonitor progressMonitor) throws MalformedTreeException,
@@ -75,42 +80,27 @@ public class JUnit4Converter {
 		final AST ast = astRoot.getAST();
 		final ASTRewrite rewriter = ASTRewrite.create(ast);
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
-		boolean modifiedDocument = false;
+		modifiedDocument = false;
 
 		List types = astRoot.types();
 
 		for (Object object : types) {
 			if (object instanceof TypeDeclaration) {
 				TypeDeclaration typeDeclaration = (TypeDeclaration) object;
-				MethodDeclaration[] methods = typeDeclaration.getMethods();
-				for (MethodDeclaration methodDeclaration : methods) {
-					SimpleName name = methodDeclaration.getName();
-					String fullyQualifiedName = name.getFullyQualifiedName();
-					if (fullyQualifiedName.toLowerCase().startsWith(
-							TEST_METHOD_PREFIX)) {
-						createMarkerAnnotation(ast, rewriter,
-								methodDeclaration, TEST_ANNOTATION_NAME);
-						importRewrite.addImport("org.junit.Test");
-						modifiedDocument = true;
-					} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
-						createMarkerAnnotation(ast, rewriter,
-								methodDeclaration, BEFORE_ANNOTATION_NAME);
-						convertProtectedToPublic(ast, rewriter,
-								methodDeclaration);
-						importRewrite.addImport("org.junit.Before");
-						modifiedDocument = true;
-					} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
-						createMarkerAnnotation(ast, rewriter,
-								methodDeclaration, AFTER_ANNOTATION_NAME);
-						convertProtectedToPublic(ast, rewriter,
-								methodDeclaration);
-						importRewrite.addImport("org.junit.After");
-						modifiedDocument = true;
-					}
-				}
+
+				removeTestCaseSuperclass(rewriter, typeDeclaration);
+
+				convertTestMethods(ast, rewriter, importRewrite,
+						typeDeclaration);
 			}
 		}
 
+		saveChanges(cu, monitor, rewriter, importRewrite);
+	}
+
+	protected void saveChanges(ICompilationUnit cu, IProgressMonitor monitor,
+			final ASTRewrite rewriter, ImportRewrite importRewrite)
+			throws CoreException, JavaModelException, BadLocationException {
 		if (modifiedDocument) {
 			TextEdit importEdits = importRewrite.rewriteImports(monitor);
 			TextEdit edits = rewriter.rewriteAST();
@@ -124,6 +114,50 @@ public class JUnit4Converter {
 			// this is the code for adding statements
 			cu.getBuffer().setContents(document.get());
 			cu.save(null, true);
+		}
+	}
+
+	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter,
+			ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
+		MethodDeclaration[] methods = typeDeclaration.getMethods();
+		for (MethodDeclaration methodDeclaration : methods) {
+			SimpleName name = methodDeclaration.getName();
+			String fullyQualifiedName = name.getFullyQualifiedName();
+			if (fullyQualifiedName.toLowerCase().startsWith(
+					TEST_METHOD_PREFIX)) {
+				createMarkerAnnotation(ast, rewriter,
+						methodDeclaration, TEST_ANNOTATION_NAME);
+				importRewrite.addImport("org.junit.Test");
+				modifiedDocument = true;
+			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
+				createMarkerAnnotation(ast, rewriter,
+						methodDeclaration, BEFORE_ANNOTATION_NAME);
+				convertProtectedToPublic(ast, rewriter,
+						methodDeclaration);
+				importRewrite.addImport("org.junit.Before");
+				modifiedDocument = true;
+			} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
+				createMarkerAnnotation(ast, rewriter,
+						methodDeclaration, AFTER_ANNOTATION_NAME);
+				convertProtectedToPublic(ast, rewriter,
+						methodDeclaration);
+				importRewrite.addImport("org.junit.After");
+				modifiedDocument = true;
+			}
+		}
+	}
+
+	protected void removeTestCaseSuperclass(final ASTRewrite rewriter,
+			TypeDeclaration typeDeclaration) {
+		Type superclassType = typeDeclaration.getSuperclassType();
+		if (superclassType.isSimpleType()) {
+			SimpleType superType = (SimpleType) superclassType;
+			System.out.println(superType.getName());
+			if (TEST_CASE_CLASSNAME.equals(superType.getName()
+					.getFullyQualifiedName())) {
+				rewriter.remove(superType, null);
+				modifiedDocument = true;
+			}
 		}
 	}
 
