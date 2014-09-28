@@ -5,12 +5,12 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>de.simonscholz</groupId>
-    <artifactId>de.simonscholz.junit4Converter.build.parent</artifactId>
+    <artifactId>de.simonscholz.junit4converter.build.parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-   <relativePath>../de.simonscholz.junit4Converter.build.parent</relativePath>
+   <relativePath>../de.simonscholz.junit4converter.build.parent</relativePath>
   </parent>
   
-  <artifactId>de.simonscholz.junit4Converter.target</artifactId>
+  <artifactId>de.simonscholz.junit4converter.target</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-target-definition</packaging>
   <build>
