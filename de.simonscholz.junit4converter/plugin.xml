@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         point="org.eclipse.ui.commands">
+      <category
+            name="Junit4"
+            id="de.simonscholz.junit4Converter.commands.category">
+      </category>
+      <command
+            name="Convert to JUnit 4"
+            categoryId="de.simonscholz.junit4Converter.commands.category"
+            id="de.simonscholz.junit4Converter.commands.converttojunit4">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            commandId="de.simonscholz.junit4Converter.commands.converttojunit4"
+            class="de.simonscholz.junit4converter.handlers.ConvertToJUnit4Handler">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+             <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
+      			<command commandId="de.simonscholz.junit4Converter.commands.converttojunit4" style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <reference
+                     definitionId="de.simonscholz.junit4Converter.javaproject selected">
+               </reference>
+            </visibleWhen>
+      			</command>
+		    </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.core.expressions.definitions">
+      <definition
+            id="de.simonscholz.junit4Converter.javaproject selected">
+               <with
+                     variable="activeMenuSelection">
+                  <iterate
+                        ifEmpty="false"
+                        operator="or">
+                     <or>                    
+                      <adapt
+                           type="org.eclipse.jdt.core.ICompilationUnit">
+                     </adapt>
+                     <adapt
+                           type="org.eclipse.core.resources.IProject">
+                     </adapt>
+                     <adapt
+                           type="org.eclipse.jdt.core.IPackageFragment">
+                     </adapt>
+                     </or>
+                  </iterate>
+               </with>
+      </definition>
+   </extension>
+
+</plugin>

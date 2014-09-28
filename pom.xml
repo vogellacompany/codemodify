@@ -10,7 +10,9 @@
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>de.simonscholz.junit4Converter</module>
+		<module>de.simonscholz.junit4converter</module>
+		<module>de.simonscholz.junit4converter.build.p2</module>
+		<module>de.simonscholz.junit4converter.feature</module>
 	</modules>
 	
 

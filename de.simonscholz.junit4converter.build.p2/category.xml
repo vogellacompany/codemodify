@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/de.simonscholz.junit4converter.feature_1.0.0.qualifier.jar" id="de.simonscholz.junit4converter.feature" version="1.0.0.qualifier">
+      <category name="de.simonscholz"/>
+   </feature>
+   <category-def name="de.simonscholz" label="JUnit 4 Tools"/>
+</site>
