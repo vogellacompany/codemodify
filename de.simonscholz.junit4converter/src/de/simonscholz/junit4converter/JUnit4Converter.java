@@ -84,6 +84,8 @@ public class JUnit4Converter {
 		// parse compilation unit
 		final ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setSource(cu);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setResolveBindings(true);
 		final CompilationUnit astRoot = (CompilationUnit) parser
 				.createAST(null);
 		// create a ASTRewrite
