@@ -9,12 +9,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import de.simonscholz.junit4converter.JUnit4Converter;
 import de.simonscholz.junit4converter.jobs.JUnit4ConversionJob;
 
 public class ConvertToJUnit4Handler extends AbstractHandler {
-
-	private JUnit4Converter jUnit4Converter;
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
