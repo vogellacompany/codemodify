@@ -9,6 +9,7 @@ import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Annotation;
@@ -105,6 +106,14 @@ public class JUnit4Converter {
 
 				convertTestMethods(ast, rewriter, importRewrite,
 						typeDeclaration);
+			}
+		}
+
+		for (IProblem problem : astRoot.getProblems()) {
+			if (problem.getID() == IProblem.UnusedImport) {
+				String unusedImport = problem.getArguments()[0];// then we cant
+																// got unused
+																// imports.
 			}
 		}
 

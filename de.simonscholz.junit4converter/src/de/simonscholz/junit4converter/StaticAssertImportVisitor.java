@@ -1,9 +1,9 @@
 package de.simonscholz.junit4converter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.IMethodBinding;
-import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
@@ -11,50 +11,37 @@ import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 public class StaticAssertImportVisitor extends ASTVisitor {
 
 	private static final String JUNIT_ASSERT_QUALIFIED_NAME = "org.junit.Assert";
-	private static final String ASSERT_FAIL_METHOD = "fail";
-	private static final String ASSERT_METHOD_PREFIX = "assert";
+
+	private static final Set<String> assertMethodNames = new HashSet<>();
+
+	static {
+		assertMethodNames.add("assertTrue");
+		assertMethodNames.add("assertFalse");
+		assertMethodNames.add("fail");
+		assertMethodNames.add("assertEquals");
+		assertMethodNames.add("assertNotEquals");
+		assertMethodNames.add("assertArrayEquals");
+		assertMethodNames.add("assertNull");
+		assertMethodNames.add("assertNotNull");
+		assertMethodNames.add("assertSame");
+		assertMethodNames.add("assertNotSame");
+		assertMethodNames.add("assertThat");
+	}
+
 	private ImportRewrite importRewrite;
 
 	public StaticAssertImportVisitor(ImportRewrite importRewrite) {
 		this.importRewrite = importRewrite;
-
 	}
 
 	@Override
 	public boolean visit(MethodInvocation node) {
 		SimpleName methodName = node.getName();
 		String methodInvocationName = methodName.getFullyQualifiedName();
-		if (methodInvocationName.startsWith(ASSERT_METHOD_PREFIX)
-				|| methodInvocationName.equals(ASSERT_FAIL_METHOD)) {
-			ITypeBinding typeBinding = getTypeBinding(node);
-
-			if (typeBinding != null) {
-				// check if the assert method is part of the org.junit.Assert
-				// class
-				if (JUNIT_ASSERT_QUALIFIED_NAME.equals(typeBinding
-						.getQualifiedName())) {
-					importRewrite.addStaticImport(JUNIT_ASSERT_QUALIFIED_NAME,
-							methodInvocationName, false);
-				}
-			}
+		if (assertMethodNames.contains(methodInvocationName)) {
+			importRewrite.addStaticImport(JUNIT_ASSERT_QUALIFIED_NAME,
+					methodInvocationName, false);
 		}
 		return true;
-	}
-
-	protected ITypeBinding getTypeBinding(MethodInvocation node) {
-		Expression expression = node.getExpression();
-		if (expression != null) {
-			ITypeBinding typeBinding = expression.resolveTypeBinding();
-			if (typeBinding != null) {
-				return typeBinding;
-			}
-		}
-
-		IMethodBinding methodBinding = node.resolveMethodBinding();
-		if (methodBinding != null) {
-			ITypeBinding declaringClass = methodBinding.getDeclaringClass();
-			return declaringClass;
-		}
-		return null;
 	}
 }
