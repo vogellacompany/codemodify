@@ -137,13 +137,15 @@ public class JUnit4Converter {
 		for (MethodDeclaration methodDeclaration : methods) {
 			SimpleName name = methodDeclaration.getName();
 			String fullyQualifiedName = name.getFullyQualifiedName();
+			
+			methodDeclaration.accept(new StaticAssertImportVisitor(
+					importRewrite));
+			
 			if (fullyQualifiedName.toLowerCase().startsWith(
 					TEST_METHOD_PREFIX)) {
 				createMarkerAnnotation(ast, rewriter,
 						methodDeclaration, TEST_ANNOTATION_NAME);
 				importRewrite.addImport(TEST_ANNOTATION_QUALIFIED_NAME);
-				methodDeclaration.accept(new StaticAssertImportVisitor(
-						importRewrite));
 				modifiedDocument = true;
 			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
 				removeAnnotation(rewriter, methodDeclaration,
