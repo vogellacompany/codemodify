@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jface.text.BadLocationException;
@@ -19,9 +20,9 @@ import de.simonscholz.junit4converter.JUnit4Converter;
 public class JUnit4ConversionJob extends Job {
 
 	private JUnit4Converter jUnit4Converter;
-	private List selectedElements;
+	private List<IJavaElement> selectedElements;
 
-	public JUnit4ConversionJob(List selectedElements) {
+	public JUnit4ConversionJob(List<IJavaElement> selectedElements) {
 		super("Converting to JUnit 4");
 		this.selectedElements = selectedElements;
 	}
