@@ -1,17 +1,13 @@
 package de.simonscholz.junit4converter;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
+import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.compiler.IProblem;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
@@ -28,10 +24,11 @@ import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ListRewrite;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
-import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
-public class JUnit4Converter {
+import de.simonscholz.ICompilationUnitModifier;
+
+public class JUnit4Converter implements ICompilationUnitModifier {
 
 	private static final String OVERRIDE_ANNOTATION_NAME = "Override";
 	private static final String TEST_ANNOTATION_QUALIFIED_NAME = "org.junit.Test";
@@ -51,47 +48,12 @@ public class JUnit4Converter {
 
 	private boolean modifiedDocument;
 
-	public void convert(IJavaProject javaProject,
-			IProgressMonitor progressMonitor) throws MalformedTreeException,
-			BadLocationException, CoreException {
-		IPackageFragment[] packageFragments = javaProject.getPackageFragments();
-		progressMonitor.beginTask(
-				"Converting JavaProject " + javaProject.getElementName(),
-				packageFragments.length);
-		AtomicInteger atomicInteger = new AtomicInteger();
-		for (IPackageFragment packageFragment : packageFragments) {
-			convert(packageFragment, progressMonitor);
-			progressMonitor.worked(atomicInteger.incrementAndGet());
-		}
-	}
-
-	public void convert(IPackageFragment packageFragment,
-			IProgressMonitor progressMonitor) throws MalformedTreeException,
-			BadLocationException, CoreException {
-		ICompilationUnit[] compilationUnits = packageFragment
-				.getCompilationUnits();
-		progressMonitor.beginTask("Converting CompilationsUnits of package"
-				+ packageFragment.getElementName(), compilationUnits.length);
-		AtomicInteger atomicInteger = new AtomicInteger();
-		for (ICompilationUnit compilationUnit : compilationUnits) {
-			convert(compilationUnit, progressMonitor);
-			progressMonitor.worked(atomicInteger.incrementAndGet());
-		}
-	}
-
-	public void convert(ICompilationUnit cu, IProgressMonitor monitor) throws MalformedTreeException,
-			BadLocationException, CoreException, BadLocationException {
-
-		// parse compilation unit
-		final ASTParser parser = ASTParser.newParser(AST.JLS8);
-		parser.setSource(cu);
-		parser.setKind(ASTParser.K_COMPILATION_UNIT);
-		parser.setResolveBindings(true);
-		final CompilationUnit astRoot = (CompilationUnit) parser
-				.createAST(null);
-		// create a ASTRewrite
-		final AST ast = astRoot.getAST();
-		final ASTRewrite rewriter = ASTRewrite.create(ast);
+	@Override
+	public void modifyCompilationUnit(CompilationUnit astRoot,
+			IProgressMonitor monitor) throws JavaModelException, CoreException,
+			BadLocationException {
+		AST ast = astRoot.getAST();
+		ASTRewrite rewriter = ASTRewrite.create(ast);
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		modifiedDocument = false;
 
@@ -109,26 +71,29 @@ public class JUnit4Converter {
 			}
 		}
 
-		saveChanges(cu, monitor, rewriter, importRewrite);
+		if (modifiedDocument) {
+			ICompilationUnit adapter = (ICompilationUnit) astRoot
+					.getJavaElement().getAdapter(IOpenable.class);
+			if (adapter != null) {
+				saveChanges(adapter, monitor, rewriter, importRewrite);
+			}
+		}
 	}
 
 	protected void saveChanges(ICompilationUnit cu, IProgressMonitor monitor,
 			final ASTRewrite rewriter, ImportRewrite importRewrite)
 			throws CoreException, JavaModelException, BadLocationException {
-		if (modifiedDocument) {
-			TextEdit importEdits = importRewrite.rewriteImports(monitor);
-			TextEdit edits = rewriter.rewriteAST();
-			importEdits.addChild(edits);
+		TextEdit importEdits = importRewrite.rewriteImports(monitor);
+		TextEdit edits = rewriter.rewriteAST();
+		importEdits.addChild(edits);
 
-			// apply the text edits to the compilation unit
-			Document document = new Document(cu.getSource());
-			importEdits.apply(document);
-			// edits.apply(document);
+		// apply the text edits to the compilation unit
+		Document document = new Document(cu.getSource());
+		importEdits.apply(document);
 
-			// this is the code for adding statements
-			cu.getBuffer().setContents(document.get());
-			cu.save(null, true);
-		}
+		// this is the code for adding statements
+		cu.getBuffer().setContents(document.get());
+		cu.save(monitor, true);
 	}
 
 	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter,
@@ -137,32 +102,29 @@ public class JUnit4Converter {
 		for (MethodDeclaration methodDeclaration : methods) {
 			SimpleName name = methodDeclaration.getName();
 			String fullyQualifiedName = name.getFullyQualifiedName();
-			
+
 			methodDeclaration.accept(new StaticAssertImportVisitor(
 					importRewrite));
-			
-			if (fullyQualifiedName.toLowerCase().startsWith(
-					TEST_METHOD_PREFIX)) {
-				createMarkerAnnotation(ast, rewriter,
-						methodDeclaration, TEST_ANNOTATION_NAME);
+
+			if (fullyQualifiedName.toLowerCase().startsWith(TEST_METHOD_PREFIX)) {
+				createMarkerAnnotation(ast, rewriter, methodDeclaration,
+						TEST_ANNOTATION_NAME);
 				importRewrite.addImport(TEST_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
 				removeAnnotation(rewriter, methodDeclaration,
 						OVERRIDE_ANNOTATION_NAME);
-				createMarkerAnnotation(ast, rewriter,
-						methodDeclaration, BEFORE_ANNOTATION_NAME);
-				convertProtectedToPublic(ast, rewriter,
-						methodDeclaration);
+				createMarkerAnnotation(ast, rewriter, methodDeclaration,
+						BEFORE_ANNOTATION_NAME);
+				convertProtectedToPublic(ast, rewriter, methodDeclaration);
 				importRewrite.addImport(BEFORE_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
 				removeAnnotation(rewriter, methodDeclaration,
 						OVERRIDE_ANNOTATION_NAME);
-				createMarkerAnnotation(ast, rewriter,
-						methodDeclaration, AFTER_ANNOTATION_NAME);
-				convertProtectedToPublic(ast, rewriter,
-						methodDeclaration);
+				createMarkerAnnotation(ast, rewriter, methodDeclaration,
+						AFTER_ANNOTATION_NAME);
+				convertProtectedToPublic(ast, rewriter, methodDeclaration);
 				importRewrite.addImport(AFTER_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			}
@@ -170,8 +132,7 @@ public class JUnit4Converter {
 	}
 
 	protected void removeTestCaseSuperclass(ASTRewrite rewriter,
-			ImportRewrite importRewrite,
-			TypeDeclaration typeDeclaration) {
+			ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
 		Type superclassType = typeDeclaration.getSuperclassType();
 		if (superclassType != null && superclassType.isSimpleType()) {
 			SimpleType superType = (SimpleType) superclassType;
@@ -190,20 +151,18 @@ public class JUnit4Converter {
 		for (Object object2 : modifiers) {
 			if (object2 instanceof Modifier) {
 				Modifier modifier = (Modifier) object2;
-				if (ModifierKeyword.PROTECTED_KEYWORD
-						.equals(modifier.getKeyword())) {
+				if (ModifierKeyword.PROTECTED_KEYWORD.equals(modifier
+						.getKeyword())) {
 					Modifier publicModifier = ast
 							.newModifier(ModifierKeyword.PUBLIC_KEYWORD);
-					rewriter.replace(modifier, publicModifier,
-							null);
+					rewriter.replace(modifier, publicModifier, null);
 				}
 			}
 		}
 	}
 
-	protected void createMarkerAnnotation(AST ast,
-			ASTRewrite rewriter, MethodDeclaration methodDeclaration,
-			String annotationName) {
+	protected void createMarkerAnnotation(AST ast, ASTRewrite rewriter,
+			MethodDeclaration methodDeclaration, String annotationName) {
 		if (!isAnnotationExisting(methodDeclaration.modifiers(), annotationName)) {
 			MarkerAnnotation testAnnotation = ast.newMarkerAnnotation();
 			testAnnotation.setTypeName(ast.newName(annotationName));
@@ -213,7 +172,7 @@ public class JUnit4Converter {
 			listRewrite.insertFirst(testAnnotation, null);
 		}
 	}
-	
+
 	protected void removeAnnotation(ASTRewrite rewriter,
 			MethodDeclaration methodDeclaration, String annotationName) {
 		List modifiers = methodDeclaration.modifiers();

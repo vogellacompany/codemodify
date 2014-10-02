@@ -3,12 +3,12 @@
   
   <parent>
 	<groupId>de.simonscholz</groupId>
-    <artifactId>de.simonscholz.junit4converter.build.parent</artifactId>
+    <artifactId>de.simonscholz.codemodify.build.parent</artifactId>
     <version>0.1.0-SNAPSHOT</version>
-    <relativePath>../de.simonscholz.junit4converter.build.parent</relativePath>
+    <relativePath>../de.simonscholz.codemodify.build.parent</relativePath>
   </parent>
     
-  <artifactId>de.simonscholz.junit4converter</artifactId>
+  <artifactId>de.simonscholz.codemodify</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-plugin</packaging>
 </project>

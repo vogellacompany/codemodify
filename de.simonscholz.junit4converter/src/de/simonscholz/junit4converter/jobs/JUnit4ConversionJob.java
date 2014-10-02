@@ -2,55 +2,25 @@ package de.simonscholz.junit4converter.jobs;
 
 import java.util.List;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragment;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.text.edits.MalformedTreeException;
-import org.osgi.framework.FrameworkUtil;
 
+import de.simonscholz.CodeModifierJob;
+import de.simonscholz.DefaultCodeModifier;
+import de.simonscholz.ICodeModifier;
 import de.simonscholz.junit4converter.JUnit4Converter;
 
-public class JUnit4ConversionJob extends Job {
+public class JUnit4ConversionJob extends CodeModifierJob {
 
-	private JUnit4Converter jUnit4Converter;
-	private List<IJavaElement> selectedElements;
+	private ICodeModifier jUnit4Converter;
 
 	public JUnit4ConversionJob(List<IJavaElement> selectedElements) {
-		super("Converting to JUnit 4");
-		this.selectedElements = selectedElements;
+		super(selectedElements, "Converting to JUnit 4");
 	}
 
 	@Override
-	protected IStatus run(IProgressMonitor monitor) {
-
-		try {
-			for (Object object : selectedElements) {
-				if (object instanceof IJavaProject) {
-					getConverter().convert((IJavaProject) object, monitor);
-				} else if (object instanceof IPackageFragment) {
-					getConverter().convert((IPackageFragment) object, monitor);
-				} else if (object instanceof ICompilationUnit) {
-					getConverter().convert((ICompilationUnit) object, monitor);
-				}
-			}
-		} catch (MalformedTreeException | BadLocationException | CoreException e) {
-			e.printStackTrace();
-			return new Status(Status.ERROR, FrameworkUtil.getBundle(getClass())
-					.getSymbolicName(), e.getLocalizedMessage(), e);
-		}
-		return Status.OK_STATUS;
-	}
-
-	protected JUnit4Converter getConverter() {
+	protected ICodeModifier getConverter() {
 		if (null == jUnit4Converter) {
-			jUnit4Converter = new JUnit4Converter();
+			jUnit4Converter = new DefaultCodeModifier(new JUnit4Converter());
 		}
 		return jUnit4Converter;
 	}

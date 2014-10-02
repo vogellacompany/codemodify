@@ -5,13 +5,18 @@
    <extension
          point="org.eclipse.ui.commands">
       <category
-            name="Junit4"
-            id="de.simonscholz.junit4Converter.commands.category">
+            name="Codemodifier"
+            id="de.simonscholz.codemodifier.commands.category">
       </category>
       <command
             name="Convert to JUnit 4"
             categoryId="de.simonscholz.junit4Converter.commands.category"
-            id="de.simonscholz.junit4Converter.commands.converttojunit4">
+            id="de.simonscholz.codemodify.commands.converttojunit4">
+      </command>
+      <command
+            categoryId="de.simonscholz.codemodifier.commands.category"
+            id="de.simonscholz.codemodify.command.removenonjavadoc"
+            name="Remove Non-JavaDoc Comments">
       </command>
    </extension>
    <extension
@@ -19,6 +24,10 @@
       <handler
             commandId="de.simonscholz.junit4Converter.commands.converttojunit4"
             class="de.simonscholz.junit4converter.handlers.ConvertToJUnit4Handler">
+      </handler>
+      <handler
+            class="de.simonscholz.nonjavadoc.handlers.NonJavaDocRemoverHandler"
+            commandId="de.simonscholz.codemodify.command.removenonjavadoc">
       </handler>
    </extension>
    <extension
@@ -28,16 +37,26 @@
             <visibleWhen
                   checkEnabled="false">
                <reference
-                     definitionId="de.simonscholz.junit4Converter.javaproject selected">
+                     definitionId="de.simonscholz.codemodifier.javaelement selected">
                </reference>
             </visibleWhen>
       			</command>
+         <command
+               commandId="de.simonscholz.codemodify.command.removenonjavadoc"
+               style="push">
+            <visibleWhen
+                  checkEnabled="false">
+               <reference
+                     definitionId="de.simonscholz.codemodifier.javaelement selected">
+               </reference>
+            </visibleWhen>
+         </command>
 		    </menuContribution>
    </extension>
    <extension
          point="org.eclipse.core.expressions.definitions">
       <definition
-            id="de.simonscholz.junit4Converter.javaproject selected">
+            id="de.simonscholz.codemodifier.javaelement selected">
                <with
                      variable="activeMenuSelection">
                   <iterate
