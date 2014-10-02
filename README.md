@@ -16,7 +16,6 @@ Features
 - test methods
   - adds @Test annotations and its import
   - Adds static imports for the assert* methods
-   
   
 - Remove old non-javadoc comments from the source code
 
