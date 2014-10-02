@@ -5,14 +5,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>de.simonscholz</groupId>
-	<artifactId>de.simonscholz.junit4Converter.main</artifactId>
+	<artifactId>de.simonscholz.codemodify.main</artifactId>
 	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>de.simonscholz.junit4converter</module>
-		<module>de.simonscholz.junit4converter.build.p2</module>
-		<module>de.simonscholz.junit4converter.feature</module>
+		<module>de.simonscholz.codemodify</module>
+		<module>de.simonscholz.codemodify.build.p2</module>
+		<module>de.simonscholz.codemodify.feature</module>
 	</modules>
 	
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
-      id="de.simonscholz.junit4converter.feature"
+      id="de.simonscholz.codemodify.feature"
       label="JUnit 4 Converter Feature"
       version="1.0.0.qualifier">
 
@@ -54,10 +54,9 @@ Adds static imports for the assert* methods
    </requires>
 
    <plugin
-         id="de.simonscholz.junit4converter"
+         id="de.simonscholz.codemodify"
          download-size="0"
          install-size="0"
-         version="0.0.0"
-         unpack="false"/>
+         version="0.0.0"/>
 
 </feature>
