@@ -49,15 +49,18 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 									.getLineOfOffset(startPosition - offset);
 							startPosition = document
 									.getLineOffset(lineOfOffset);
-							int replaceStart = startPosition
-									- LINE_DELIMITER_LENGTH;
 							int replaceLength = endPosition - startPosition
 									+ LINE_DELIMITER_LENGTH - offset;
-							if (document
+							if (startPosition > -1
+									&& document
 									.get()
-									.substring(replaceStart,
-											replaceStart + replaceLength)
+											.substring(
+													startPosition,
+													startPosition
+															+ replaceLength)
 									.contains(NON_JAVADOC_COMMENT)) {
+								int replaceStart = startPosition
+										- LINE_DELIMITER_LENGTH;
 								document.replace(replaceStart, replaceLength,
 										EMPTY_STRING);
 								offset = endPosition - startPosition
