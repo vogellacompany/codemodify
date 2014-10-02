@@ -19,6 +19,9 @@ import de.simonscholz.ICompilationUnitModifier;
 
 public class NonJavaDocRemover implements ICompilationUnitModifier {
 
+	private static final String NON_JAVADOC_COMMENT = "(non-Javadoc)"; //$NON-NLS-1$
+	private static final String EMPTY_STRING = ""; //$NON-NLS-1$
+
 	private static final int LINE_DELIMITER_LENGTH = 1;
 
 	private int offset;
@@ -46,16 +49,24 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 									.getLineOfOffset(startPosition - offset);
 							startPosition = document
 									.getLineOffset(lineOfOffset);
-							document.replace(startPosition
-									- LINE_DELIMITER_LENGTH, endPosition
-									- startPosition + LINE_DELIMITER_LENGTH
-									- offset, "");
+							int replaceStart = startPosition
+									- LINE_DELIMITER_LENGTH;
+							int replaceLength = endPosition - startPosition
+									+ LINE_DELIMITER_LENGTH - offset;
+							if (document
+									.get()
+									.substring(replaceStart,
+											replaceStart + replaceLength)
+									.contains(NON_JAVADOC_COMMENT)) {
+								document.replace(replaceStart, replaceLength,
+										EMPTY_STRING);
+								offset = endPosition - startPosition
+										+ LINE_DELIMITER_LENGTH;
+							}
 						} catch (BadLocationException e) {
 							e.printStackTrace();
 						}
 
-						offset = endPosition - startPosition
-								+ LINE_DELIMITER_LENGTH;
 						return super.visit(node);
 					}
 				});
