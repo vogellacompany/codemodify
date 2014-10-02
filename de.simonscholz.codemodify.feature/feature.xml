@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.simonscholz.codemodify.feature"
-      label="JUnit 4 Converter Feature"
+      label="Code Modifier Feature"
       version="1.0.0.qualifier">
 
    <description url="https://github.com/SimonScholz/eclipseJUnit4Converter">
       This Plugin can be used to convert JUnit 3 TestCases to JUnit
 4 TestCases
-
 -Removes TestCase parent class and the &quot;junit.framework.TestCase&quot;
 import
 -setUp method
@@ -19,6 +18,8 @@ makes method public
 -test methods
 adds @Test annotations and its import
 Adds static imports for the assert* methods
+
+This Plugin is also able to remove old non-javadoc comments in the sourcecode
    </description>
 
    <license url="https://www.eclipse.org/legal/epl-v10.html">
