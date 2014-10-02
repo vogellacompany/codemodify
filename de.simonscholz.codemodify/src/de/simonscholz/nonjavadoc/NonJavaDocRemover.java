@@ -26,6 +26,7 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 
 	private int offset;
 	private IDocument document;
+	private boolean modifiedDocument;
 
 	@Override
 	public void modifyCompilationUnit(CompilationUnit astRoot,
@@ -33,6 +34,7 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 			BadLocationException {
 		final ICompilationUnit adapter = (ICompilationUnit) astRoot
 				.getJavaElement().getAdapter(IOpenable.class);
+		modifiedDocument = false;
 		if (adapter != null) {
 			document = new Document(adapter.getSource());
 			List<Comment> commentList = astRoot.getCommentList();
@@ -65,6 +67,7 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 										EMPTY_STRING);
 								offset = endPosition - startPosition
 										+ LINE_DELIMITER_LENGTH;
+								modifiedDocument = true;
 							}
 						} catch (BadLocationException e) {
 							e.printStackTrace();
@@ -74,8 +77,10 @@ public class NonJavaDocRemover implements ICompilationUnitModifier {
 					}
 				});
 			}
-			adapter.getBuffer().setContents(document.get());
-			adapter.save(monitor, true);
+			if (modifiedDocument) {
+				adapter.getBuffer().setContents(document.get());
+				adapter.save(monitor, true);
+			}
 		}
 	}
 }
