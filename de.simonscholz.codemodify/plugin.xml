@@ -10,7 +10,7 @@
       </category>
       <command
             name="Convert to JUnit 4"
-            categoryId="de.simonscholz.junit4Converter.commands.category"
+            categoryId="de.simonscholz.codemodifier.commands.category"
             id="de.simonscholz.codemodify.commands.converttojunit4">
       </command>
       <command
@@ -22,7 +22,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            commandId="de.simonscholz.junit4Converter.commands.converttojunit4"
+            commandId="de.simonscholz.codemodify.commands.converttojunit4"
             class="de.simonscholz.junit4converter.handlers.ConvertToJUnit4Handler">
       </handler>
       <handler
@@ -32,8 +32,10 @@
    </extension>
    <extension
          point="org.eclipse.ui.menus">
-             <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer">
-      			<command commandId="de.simonscholz.junit4Converter.commands.converttojunit4" style="push">
+             <menuContribution
+                   allPopups="true"
+                   locationURI="popup:org.eclipse.jdt.ui.source.menu">
+      			<command commandId="de.simonscholz.codemodify.commands.converttojunit4" style="push">
             <visibleWhen
                   checkEnabled="false">
                <reference
