@@ -1,64 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?eclipse version="3.4"?>
 <plugin>
 
    <extension
-         point="org.eclipse.ui.commands">
-      <category
-            name="Codemodifier"
-            id="de.simonscholz.codemodifier.commands.category">
-      </category>
-      <command
-            name="Convert to JUnit 4"
-            categoryId="de.simonscholz.codemodifier.commands.category"
-            id="de.simonscholz.codemodify.commands.converttojunit4">
-      </command>
-      <command
-            categoryId="de.simonscholz.codemodifier.commands.category"
-            id="de.simonscholz.codemodify.command.removenonjavadoc"
-            name="Remove Non-JavaDoc Comments">
-      </command>
-   </extension>
-   <extension
-         point="org.eclipse.ui.handlers">
-      <handler
-            commandId="de.simonscholz.codemodify.commands.converttojunit4"
-            class="de.simonscholz.junit4converter.handlers.ConvertToJUnit4Handler">
-      </handler>
-      <handler
-            class="de.simonscholz.nonjavadoc.handlers.NonJavaDocRemoverHandler"
-            commandId="de.simonscholz.codemodify.command.removenonjavadoc">
-      </handler>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-             <menuContribution
-                   allPopups="true"
-                   locationURI="popup:org.eclipse.jdt.ui.source.menu">
-      			<command commandId="de.simonscholz.codemodify.commands.converttojunit4" style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <reference
-                     definitionId="de.simonscholz.codemodifier.javaelement selected">
-               </reference>
-            </visibleWhen>
-      			</command>
-         <command
-               commandId="de.simonscholz.codemodify.command.removenonjavadoc"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <reference
-                     definitionId="de.simonscholz.codemodifier.javaelement selected">
-               </reference>
-            </visibleWhen>
-         </command>
-		    </menuContribution>
+         id="de.simonscholz.codemodify.fragment"
+         point="org.eclipse.e4.workbench.model">
+      <fragment
+            uri="fragment.e4xmi">
+      </fragment>
    </extension>
    <extension
          point="org.eclipse.core.expressions.definitions">
       <definition
-            id="de.simonscholz.codemodifier.javaelement selected">
+            id="de.simonscholz.codemodifier.javaelementselected">
                <with
                      variable="activeMenuSelection">
                   <iterate

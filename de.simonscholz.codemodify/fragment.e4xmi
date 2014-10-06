@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="ASCII"?>
+<fragment:ModelFragments xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:commands="http://www.eclipse.org/ui/2010/UIModel/application/commands" xmlns:fragment="http://www.eclipse.org/ui/2010/UIModel/fragment" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmlns:ui="http://www.eclipse.org/ui/2010/UIModel/application/ui" xmi:id="_rafxYEyKEeS0TKVI4lgUDA">
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_A5ykgEyLEeS0TKVI4lgUDA" featurename="categories" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="commands:Category" xmi:id="_HXMFwEyLEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodifier.commands.category" name="Codemodifier"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_yd_CQEyKEeS0TKVI4lgUDA" featurename="commands" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="commands:Command" xmi:id="_5WAqAEyKEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.commands.converttojunit4" commandName="Convert to JUnit 4" category="_HXMFwEyLEeS0TKVI4lgUDA"/>
+    <elements xsi:type="commands:Command" xmi:id="_S5o1QEyLEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.command.removenonjavadoc" commandName="Remove Non-JavaDoc Comments" category="_HXMFwEyLEeS0TKVI4lgUDA"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_b1y38EyLEeS0TKVI4lgUDA" featurename="handlers" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="commands:Handler" xmi:id="_hAYGcEyLEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handler.converttojunit4" contributionURI="bundleclass://de.simonscholz.codemodify/de.simonscholz.junit4converter.handlers.ConvertToJUnit4Handler" command="_5WAqAEyKEeS0TKVI4lgUDA"/>
+    <elements xsi:type="commands:Handler" xmi:id="_t_LfMEyLEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handler.removenonjavadoc" contributionURI="bundleclass://de.simonscholz.codemodify/de.simonscholz.nonjavadoc.handlers.NonJavaDocRemoverHandler" command="_S5o1QEyLEeS0TKVI4lgUDA"/>
+  </fragments>
+  <fragments xsi:type="fragment:StringModelFragment" xmi:id="_sUhewEyMEeS0TKVI4lgUDA" featurename="menuContributions" parentElementId="org.eclipse.e4.legacy.ide.application">
+    <elements xsi:type="menu:MenuContribution" xmi:id="_3UEVgEyMEeS0TKVI4lgUDA" elementId="popup:org.eclipse.jdt.ui.source.menu" parentId="org.eclipse.jdt.ui.source.menu">
+      <children xsi:type="menu:HandledMenuItem" xmi:id="_IZvdAEyNEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handledmenuitem.converttojunit4" command="_5WAqAEyKEeS0TKVI4lgUDA">
+        <visibleWhen xsi:type="ui:CoreExpression" xmi:id="_-yS6QEyPEeS0TKVI4lgUDA" coreExpressionId="de.simonscholz.codemodifier.javaelementselected"/>
+      </children>
+      <children xsi:type="menu:HandledMenuItem" xmi:id="_QBVggEyNEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handledmenuitem.removenonjavadoc" command="_S5o1QEyLEeS0TKVI4lgUDA">
+        <visibleWhen xsi:type="ui:CoreExpression" xmi:id="__VwMoEyPEeS0TKVI4lgUDA" coreExpressionId="de.simonscholz.codemodifier.javaelementselected"/>
+      </children>
+    </elements>
+  </fragments>
+</fragment:ModelFragments>
