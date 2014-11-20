@@ -12,7 +12,7 @@
     <elements xsi:type="commands:Handler" xmi:id="_t_LfMEyLEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handler.removenonjavadoc" contributionURI="bundleclass://de.simonscholz.codemodify/de.simonscholz.nonjavadoc.handlers.NonJavaDocRemoverHandler" command="_S5o1QEyLEeS0TKVI4lgUDA"/>
   </fragments>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_sUhewEyMEeS0TKVI4lgUDA" featurename="menuContributions" parentElementId="org.eclipse.e4.legacy.ide.application">
-    <elements xsi:type="menu:MenuContribution" xmi:id="_3UEVgEyMEeS0TKVI4lgUDA" elementId="popup:org.eclipse.jdt.ui.source.menu" parentId="org.eclipse.jdt.ui.source.menu">
+    <elements xsi:type="menu:MenuContribution" xmi:id="_3UEVgEyMEeS0TKVI4lgUDA" elementId="" parentId="org.eclipse.jdt.ui.source.menu">
       <children xsi:type="menu:HandledMenuItem" xmi:id="_IZvdAEyNEeS0TKVI4lgUDA" elementId="de.simonscholz.codemodify.handledmenuitem.converttojunit4" command="_5WAqAEyKEeS0TKVI4lgUDA">
         <visibleWhen xsi:type="ui:CoreExpression" xmi:id="_-yS6QEyPEeS0TKVI4lgUDA" coreExpressionId="de.simonscholz.codemodifier.javaelementselected"/>
       </children>

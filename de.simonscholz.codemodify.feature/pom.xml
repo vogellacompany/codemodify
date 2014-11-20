@@ -8,8 +8,6 @@
     <relativePath>../de.simonscholz.codemodify.build.parent</relativePath>
   </parent>
   
-  <groupId>de.simonscholz.codemodify.feature</groupId>
   <artifactId>de.simonscholz.codemodify.feature</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
   <packaging>eclipse-feature</packaging>
 </project>
