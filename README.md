@@ -3,6 +3,11 @@ Eclipse Code Modifying Plugin
 
 This Plugin can be used to convert JUnit 3 TestCases to JUnit 4 TestCases and to remove old non-javadoc comments from the soruce code.
 
+P2 Updatesite
+=============
+
+http://dl.bintray.com/vogellacompany/junit-4-tools/
+
 Features
 ========
 
