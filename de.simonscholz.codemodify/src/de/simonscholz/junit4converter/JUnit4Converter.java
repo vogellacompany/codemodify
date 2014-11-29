@@ -56,12 +56,17 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		ASTRewrite rewriter = ASTRewrite.create(ast);
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		modifiedDocument = false;
+		JUnit4BisonConverter bisonConverter = new JUnit4BisonConverter(ast,
+				rewriter, importRewrite);
 
 		List types = astRoot.types();
 
 		for (Object object : types) {
 			if (object instanceof TypeDeclaration) {
+
 				TypeDeclaration typeDeclaration = (TypeDeclaration) object;
+				bisonConverter.convert(typeDeclaration);
+				modifiedDocument = bisonConverter.wasConverted();
 
 				removeTestCaseSuperclass(rewriter, importRewrite,
 						typeDeclaration);
@@ -98,6 +103,9 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 
 	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter,
 			final ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
+		if (!modifiedDocument) {
+			return;
+		}
 		MethodDeclaration[] methods = typeDeclaration.getMethods();
 		for (MethodDeclaration methodDeclaration : methods) {
 			SimpleName name = methodDeclaration.getName();
