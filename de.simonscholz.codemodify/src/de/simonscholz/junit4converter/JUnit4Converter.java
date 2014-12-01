@@ -134,13 +134,16 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		}
 	}
 
-	private void removeSuperCall(ASTRewrite rewriter,
+	protected void removeSuperCall(ASTRewrite rewriter,
 			MethodDeclaration methodDeclaration) {
-		List<Statement> statements = methodDeclaration.getBody().statements();
+		List statements = methodDeclaration.getBody().statements();
 		if (statements.size() >= 1) {
-			Statement superCall = statements.get(0);
-			if (superCall.toString().startsWith("super")) {
-				rewriter.remove(superCall, null);
+			Object object = statements.get(0);
+			if (object instanceof Statement) {
+				Statement superCall = (Statement) object;
+				if (superCall.toString().startsWith("super")) {
+					rewriter.remove(superCall, null);
+				}
 			}
 		}
 	}
