@@ -1,7 +1,7 @@
 Eclipse Code Modifying Plugin
 =============================
 
-This Plugin can be used to convert JUnit 3 TestCases to JUnit 4 TestCases and to remove old non-javadoc comments from the soruce code.
+This Plugin can be used to convert JUnit 3 TestCases to JUnit 4 TestCases and to remove old non-javadoc comments from the source code.
 
 P2 Updatesite
 =============
@@ -27,7 +27,7 @@ Features
 Usage
 =====
 
-Just right click a java class, a package or a whole javaproject in Eclipse and click on the "Convert to JUnit 4" menu entry.
+Just right click on a java class, a package or a whole Java project in Eclipse and click on the "Convert to JUnit 4" menu entry.
 
 
 ![Package Explorer Context Menu](http://i60.tinypic.com/jku7ur.png)
