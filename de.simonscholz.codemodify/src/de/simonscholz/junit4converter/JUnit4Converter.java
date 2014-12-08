@@ -106,7 +106,8 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 			methodDeclaration.accept(new StaticAssertImportVisitor(
 					importRewrite));
 
-			if (fullyQualifiedName.toLowerCase().startsWith(TEST_METHOD_PREFIX)) {
+			if (fullyQualifiedName.toLowerCase().startsWith(TEST_METHOD_PREFIX)
+					&& isPublicMethod(methodDeclaration)) {
 				createMarkerAnnotation(ast, rewriter, methodDeclaration,
 						TEST_ANNOTATION_NAME);
 				importRewrite.addImport(TEST_ANNOTATION_QUALIFIED_NAME);
@@ -129,6 +130,18 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 				modifiedDocument = true;
 			}
 		}
+	}
+
+	protected boolean isPublicMethod(MethodDeclaration methodDeclaration) {
+		List modifiers = methodDeclaration.modifiers();
+		for (Object object : modifiers) {
+			if (object instanceof Modifier) {
+				Modifier modifier = (Modifier) object;
+				return ModifierKeyword.PUBLIC_KEYWORD.equals(modifier
+						.getKeyword());
+			}
+		}
+		return false;
 	}
 
 	protected void removeTestCaseSuperclass(ASTRewrite rewriter,
