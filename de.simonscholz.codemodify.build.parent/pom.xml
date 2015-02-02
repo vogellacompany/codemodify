@@ -21,7 +21,7 @@
 		<!-- http://maven.apache.org/general.html#encoding-warning -->
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<tycho-version>0.21.0</tycho-version>
+		<tycho-version>0.22.0</tycho-version>
 		<eclipse-repo.url>http://download.eclipse.org/releases/luna</eclipse-repo.url>
 		<!-- no default here -->
 		<tycho.test.vm.argline>-Xmx500m -Xdebug
