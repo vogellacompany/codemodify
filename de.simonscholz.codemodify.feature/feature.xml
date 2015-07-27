@@ -2,7 +2,8 @@
 <feature
       id="de.simonscholz.codemodify.feature"
       label="Code Modifier Feature"
-      version="0.1.0.qualifier">
+      version="0.1.0.qualifier"
+      provider-name="vogella GmbH">
 
    <description url="https://github.com/SimonScholz/eclipseJUnit4Converter">
       This Plugin can be used to convert JUnit 3 TestCases to JUnit
