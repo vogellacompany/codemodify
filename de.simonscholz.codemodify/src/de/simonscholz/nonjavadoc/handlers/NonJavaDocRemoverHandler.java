@@ -12,15 +12,12 @@ import de.simonscholz.nonjavadoc.jobs.NonJavaDocJob;
 public class NonJavaDocRemoverHandler {
 
 	@Execute
-	public Object execute(
-			@Optional @Named(IServiceConstants.ACTIVE_SELECTION) IStructuredSelection selection) {
+	public void execute(@Optional @Named(IServiceConstants.ACTIVE_SELECTION) IStructuredSelection selection) {
 		if (selection != null && !selection.isEmpty()) {
 			NonJavaDocJob job = new NonJavaDocJob(selection.toList());
 			job.schedule();
 		}
 
-		return null;
 	}
-
 
 }
