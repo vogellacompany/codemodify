@@ -1,9 +1,8 @@
 package de.simonscholz;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
@@ -14,16 +13,15 @@ public abstract class AbstractCodeModifier implements ICodeModifier {
 
 	@Override
 	public void modify(IJavaProject javaProject,
-			IProgressMonitor progressMonitor) throws MalformedTreeException,
+			IProgressMonitor monitor) throws MalformedTreeException,
 			BadLocationException, CoreException {
 		IPackageFragment[] packageFragments = javaProject.getPackageFragments();
-		progressMonitor.beginTask(
+		SubMonitor subMonitor = SubMonitor.convert(monitor, packageFragments.length);
+		subMonitor.beginTask(
 				"Converting JavaProject " + javaProject.getElementName(),
 				packageFragments.length);
-		AtomicInteger atomicInteger = new AtomicInteger();
 		for (IPackageFragment packageFragment : packageFragments) {
-			modify(packageFragment, progressMonitor);
-			progressMonitor.worked(atomicInteger.incrementAndGet());
+			modify(packageFragment, subMonitor.newChild(1));
 		}
 	}
 
@@ -33,12 +31,11 @@ public abstract class AbstractCodeModifier implements ICodeModifier {
 			BadLocationException, CoreException {
 		ICompilationUnit[] compilationUnits = packageFragment
 				.getCompilationUnits();
-		progressMonitor.beginTask("Converting CompilationsUnits of package"
+		SubMonitor subMonitor = SubMonitor.convert(progressMonitor, compilationUnits.length);
+		subMonitor.beginTask("Converting CompilationsUnits of package"
 				+ packageFragment.getElementName(), compilationUnits.length);
-		AtomicInteger atomicInteger = new AtomicInteger();
 		for (ICompilationUnit compilationUnit : compilationUnits) {
-			modify(compilationUnit, progressMonitor);
-			progressMonitor.worked(atomicInteger.incrementAndGet());
+			modify(compilationUnit, subMonitor.newChild(1));
 		}
 	}
 

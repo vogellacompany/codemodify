@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -27,14 +28,16 @@ public class DefaultCodeModifier extends AbstractCodeModifier {
 	@Override
 	public void modify(ICompilationUnit cu, IProgressMonitor monitor)
 			throws MalformedTreeException, BadLocationException, CoreException {
+		SubMonitor subMonitor = SubMonitor.convert(monitor, modifiers.size() + 1);
+		
 		// parse compilation unit
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setSource(cu);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
-		CompilationUnit astRoot = (CompilationUnit) parser.createAST(monitor);
+		CompilationUnit astRoot = (CompilationUnit) parser.createAST(subMonitor.newChild(1));
 
 		for (ICompilationUnitModifier compilationUnitModifier : modifiers) {
-			compilationUnitModifier.modifyCompilationUnit(astRoot, monitor);
+			compilationUnitModifier.modifyCompilationUnit(astRoot, subMonitor.newChild(1));
 		}
 
 	}

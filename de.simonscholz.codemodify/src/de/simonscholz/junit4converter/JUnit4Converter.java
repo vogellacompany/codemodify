@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
@@ -54,16 +55,17 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 			IProgressMonitor monitor) throws JavaModelException, CoreException,
 			BadLocationException {
 		AST ast = astRoot.getAST();
+		List<?> types = astRoot.types();
+		SubMonitor subMonitor = SubMonitor.convert(monitor, types.size() + 1);
 		ASTRewrite rewriter = ASTRewrite.create(ast);
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		modifiedDocument = false;
 
-		List types = astRoot.types();
 
+		subMonitor.setWorkRemaining(types.size());
 		for (Object object : types) {
 			if (object instanceof TypeDeclaration) {
 				TypeDeclaration typeDeclaration = (TypeDeclaration) object;
-
 				removeTestCaseSuperclass(rewriter, importRewrite,
 						typeDeclaration);
 
@@ -71,12 +73,13 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 						typeDeclaration);
 			}
 		}
+		
 
 		if (modifiedDocument) {
 			ICompilationUnit adapter = (ICompilationUnit) astRoot
 					.getJavaElement().getAdapter(IOpenable.class);
 			if (adapter != null) {
-				saveChanges(adapter, monitor, rewriter, importRewrite);
+				saveChanges(adapter, subMonitor.newChild(1), rewriter, importRewrite);
 			}
 		}
 	}
@@ -136,7 +139,7 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 	}
 
 	protected boolean isPublicMethod(MethodDeclaration methodDeclaration) {
-		List modifiers = methodDeclaration.modifiers();
+		List<?> modifiers = methodDeclaration.modifiers();
 		for (Object object : modifiers) {
 			if (object instanceof Modifier) {
 				Modifier modifier = (Modifier) object;
@@ -149,7 +152,7 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 
 	protected void removeSuperCall(ASTRewrite rewriter,
 			MethodDeclaration methodDeclaration) {
-		List statements = methodDeclaration.getBody().statements();
+		List<?> statements = methodDeclaration.getBody().statements();
 		for (Object object : statements) {
 			if (object instanceof Statement) {
 				Statement superCall = (Statement) object;
@@ -180,7 +183,7 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 
 	protected void convertProtectedToPublic(final AST ast,
 			final ASTRewrite rewriter, MethodDeclaration methodDeclaration) {
-		List modifiers = methodDeclaration.modifiers();
+		List<?> modifiers = methodDeclaration.modifiers();
 		for (Object object2 : modifiers) {
 			if (object2 instanceof Modifier) {
 				Modifier modifier = (Modifier) object2;
@@ -208,7 +211,7 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 
 	protected void removeAnnotation(ASTRewrite rewriter,
 			MethodDeclaration methodDeclaration, String annotationName) {
-		List modifiers = methodDeclaration.modifiers();
+		List<?> modifiers = methodDeclaration.modifiers();
 		for (Object object : modifiers) {
 			if (object instanceof Annotation) {
 				Annotation annotation = (Annotation) object;
@@ -220,7 +223,7 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		}
 	}
 
-	protected boolean isAnnotationExisting(List modifiers, String annotationName) {
+	protected boolean isAnnotationExisting(List<?> modifiers, String annotationName) {
 		for (Object modifier : modifiers) {
 			if (modifier instanceof Annotation) {
 				Annotation markerAnnotation = (Annotation) modifier;
