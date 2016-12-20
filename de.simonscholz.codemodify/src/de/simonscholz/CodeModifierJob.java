@@ -30,17 +30,12 @@ public abstract class CodeModifierJob extends Job {
 		SubMonitor subMonitor = SubMonitor.convert(monitor, selectedElements.size());
 		try {
 			for (Object object : selectedElements) {
-				if(subMonitor.isCanceled()) {
-					return new Status(IStatus.CANCEL, FrameworkUtil.getBundle(getClass())
-							.getSymbolicName(), getName() + " has been canceled");
-				}
-				
 				if (object instanceof IJavaProject) {
-					getConverter().modify((IJavaProject) object, subMonitor.newChild(1));
+					getConverter().modify((IJavaProject) object, subMonitor.split(1));
 				} else if (object instanceof IPackageFragment) {
-					getConverter().modify((IPackageFragment) object, subMonitor.newChild(1));
+					getConverter().modify((IPackageFragment) object, subMonitor.split(1));
 				} else if (object instanceof ICompilationUnit) {
-					getConverter().modify((ICompilationUnit) object, subMonitor.newChild(1));
+					getConverter().modify((ICompilationUnit) object, subMonitor.split(1));
 				}
 			}
 		} catch (MalformedTreeException | BadLocationException | CoreException e) {

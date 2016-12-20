@@ -51,42 +51,34 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 	private boolean modifiedDocument;
 
 	@Override
-	public void modifyCompilationUnit(CompilationUnit astRoot,
-			IProgressMonitor monitor) throws JavaModelException, CoreException,
-			BadLocationException {
+	public void modifyCompilationUnit(CompilationUnit astRoot, IProgressMonitor monitor)
+			throws JavaModelException, CoreException, BadLocationException {
 		AST ast = astRoot.getAST();
 		List<?> types = astRoot.types();
-		SubMonitor subMonitor = SubMonitor.convert(monitor, types.size() + 1);
+		SubMonitor subMonitor = SubMonitor.convert(monitor, types.size());
 		ASTRewrite rewriter = ASTRewrite.create(ast);
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		modifiedDocument = false;
 
-
-		subMonitor.setWorkRemaining(types.size());
 		for (Object object : types) {
 			if (object instanceof TypeDeclaration) {
 				TypeDeclaration typeDeclaration = (TypeDeclaration) object;
-				removeTestCaseSuperclass(rewriter, importRewrite,
-						typeDeclaration);
+				removeTestCaseSuperclass(rewriter, importRewrite, typeDeclaration);
 
-				convertTestMethods(ast, rewriter, importRewrite,
-						typeDeclaration);
+				convertTestMethods(ast, rewriter, importRewrite, typeDeclaration);
 			}
 		}
-		
 
 		if (modifiedDocument) {
-			ICompilationUnit adapter = (ICompilationUnit) astRoot
-					.getJavaElement().getAdapter(IOpenable.class);
+			ICompilationUnit adapter = (ICompilationUnit) astRoot.getJavaElement().getAdapter(IOpenable.class);
 			if (adapter != null) {
 				saveChanges(adapter, subMonitor.newChild(1), rewriter, importRewrite);
 			}
 		}
 	}
 
-	protected void saveChanges(ICompilationUnit cu, IProgressMonitor monitor,
-			final ASTRewrite rewriter, ImportRewrite importRewrite)
-			throws CoreException, JavaModelException, BadLocationException {
+	protected void saveChanges(ICompilationUnit cu, IProgressMonitor monitor, final ASTRewrite rewriter,
+			ImportRewrite importRewrite) throws CoreException, JavaModelException, BadLocationException {
 		TextEdit importEdits = importRewrite.rewriteImports(monitor);
 		TextEdit edits = rewriter.rewriteAST();
 		importEdits.addChild(edits);
@@ -100,36 +92,29 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		cu.save(monitor, true);
 	}
 
-	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter,
-			final ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
+	protected void convertTestMethods(final AST ast, final ASTRewrite rewriter, final ImportRewrite importRewrite,
+			TypeDeclaration typeDeclaration) {
 		MethodDeclaration[] methods = typeDeclaration.getMethods();
 		for (MethodDeclaration methodDeclaration : methods) {
 			SimpleName name = methodDeclaration.getName();
 			String fullyQualifiedName = name.getFullyQualifiedName();
 
-			methodDeclaration.accept(new StaticAssertImportVisitor(
-					importRewrite));
+			methodDeclaration.accept(new StaticAssertImportVisitor(importRewrite));
 
-			if (fullyQualifiedName.toLowerCase().startsWith(TEST_METHOD_PREFIX)
-					&& isPublicMethod(methodDeclaration)) {
-				createMarkerAnnotation(ast, rewriter, methodDeclaration,
-						TEST_ANNOTATION_NAME);
+			if (fullyQualifiedName.toLowerCase().startsWith(TEST_METHOD_PREFIX) && isPublicMethod(methodDeclaration)) {
+				createMarkerAnnotation(ast, rewriter, methodDeclaration, TEST_ANNOTATION_NAME);
 				importRewrite.addImport(TEST_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (SET_UP_METHOD_NAME.equals(fullyQualifiedName)) {
-				removeAnnotation(rewriter, methodDeclaration,
-						OVERRIDE_ANNOTATION_NAME);
-				createMarkerAnnotation(ast, rewriter, methodDeclaration,
-						BEFORE_ANNOTATION_NAME);
+				removeAnnotation(rewriter, methodDeclaration, OVERRIDE_ANNOTATION_NAME);
+				createMarkerAnnotation(ast, rewriter, methodDeclaration, BEFORE_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter, methodDeclaration);
 				removeSuperCall(rewriter, methodDeclaration);
 				importRewrite.addImport(BEFORE_ANNOTATION_QUALIFIED_NAME);
 				modifiedDocument = true;
 			} else if (TEAR_DOWN_METHOD_NAME.equals(fullyQualifiedName)) {
-				removeAnnotation(rewriter, methodDeclaration,
-						OVERRIDE_ANNOTATION_NAME);
-				createMarkerAnnotation(ast, rewriter, methodDeclaration,
-						AFTER_ANNOTATION_NAME);
+				removeAnnotation(rewriter, methodDeclaration, OVERRIDE_ANNOTATION_NAME);
+				createMarkerAnnotation(ast, rewriter, methodDeclaration, AFTER_ANNOTATION_NAME);
 				convertProtectedToPublic(ast, rewriter, methodDeclaration);
 				removeSuperCall(rewriter, methodDeclaration);
 				importRewrite.addImport(AFTER_ANNOTATION_QUALIFIED_NAME);
@@ -143,23 +128,19 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		for (Object object : modifiers) {
 			if (object instanceof Modifier) {
 				Modifier modifier = (Modifier) object;
-				return ModifierKeyword.PUBLIC_KEYWORD.equals(modifier
-						.getKeyword());
+				return ModifierKeyword.PUBLIC_KEYWORD.equals(modifier.getKeyword());
 			}
 		}
 		return false;
 	}
 
-	protected void removeSuperCall(ASTRewrite rewriter,
-			MethodDeclaration methodDeclaration) {
+	protected void removeSuperCall(ASTRewrite rewriter, MethodDeclaration methodDeclaration) {
 		List<?> statements = methodDeclaration.getBody().statements();
 		for (Object object : statements) {
 			if (object instanceof Statement) {
 				Statement superCall = (Statement) object;
 				String superCallAsString = superCall.toString().trim();
-				String toBeReplacedSuperCall = "super."
-						+ methodDeclaration.getName().getFullyQualifiedName()
-						+ "();";
+				String toBeReplacedSuperCall = "super." + methodDeclaration.getName().getFullyQualifiedName() + "();";
 				if (superCallAsString.equals(toBeReplacedSuperCall)) {
 					rewriter.remove(superCall, null);
 				}
@@ -167,13 +148,12 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		}
 	}
 
-	protected void removeTestCaseSuperclass(ASTRewrite rewriter,
-			ImportRewrite importRewrite, TypeDeclaration typeDeclaration) {
+	protected void removeTestCaseSuperclass(ASTRewrite rewriter, ImportRewrite importRewrite,
+			TypeDeclaration typeDeclaration) {
 		Type superclassType = typeDeclaration.getSuperclassType();
 		if (superclassType != null && superclassType.isSimpleType()) {
 			SimpleType superType = (SimpleType) superclassType;
-			if (TEST_CASE_CLASSNAME.equals(superType.getName()
-					.getFullyQualifiedName())) {
+			if (TEST_CASE_CLASSNAME.equals(superType.getName().getFullyQualifiedName())) {
 				rewriter.remove(superType, null);
 				importRewrite.removeImport(TEST_CASE_QUALIFIED_NAME);
 				modifiedDocument = true;
@@ -181,36 +161,32 @@ public class JUnit4Converter implements ICompilationUnitModifier {
 		}
 	}
 
-	protected void convertProtectedToPublic(final AST ast,
-			final ASTRewrite rewriter, MethodDeclaration methodDeclaration) {
+	protected void convertProtectedToPublic(final AST ast, final ASTRewrite rewriter,
+			MethodDeclaration methodDeclaration) {
 		List<?> modifiers = methodDeclaration.modifiers();
 		for (Object object2 : modifiers) {
 			if (object2 instanceof Modifier) {
 				Modifier modifier = (Modifier) object2;
-				if (ModifierKeyword.PROTECTED_KEYWORD.equals(modifier
-						.getKeyword())) {
-					Modifier publicModifier = ast
-							.newModifier(ModifierKeyword.PUBLIC_KEYWORD);
+				if (ModifierKeyword.PROTECTED_KEYWORD.equals(modifier.getKeyword())) {
+					Modifier publicModifier = ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD);
 					rewriter.replace(modifier, publicModifier, null);
 				}
 			}
 		}
 	}
 
-	protected void createMarkerAnnotation(AST ast, ASTRewrite rewriter,
-			MethodDeclaration methodDeclaration, String annotationName) {
+	protected void createMarkerAnnotation(AST ast, ASTRewrite rewriter, MethodDeclaration methodDeclaration,
+			String annotationName) {
 		if (!isAnnotationExisting(methodDeclaration.modifiers(), annotationName)) {
 			MarkerAnnotation testAnnotation = ast.newMarkerAnnotation();
 			testAnnotation.setTypeName(ast.newName(annotationName));
 
-			ListRewrite listRewrite = rewriter.getListRewrite(
-					methodDeclaration, MethodDeclaration.MODIFIERS2_PROPERTY);
+			ListRewrite listRewrite = rewriter.getListRewrite(methodDeclaration, MethodDeclaration.MODIFIERS2_PROPERTY);
 			listRewrite.insertFirst(testAnnotation, null);
 		}
 	}
 
-	protected void removeAnnotation(ASTRewrite rewriter,
-			MethodDeclaration methodDeclaration, String annotationName) {
+	protected void removeAnnotation(ASTRewrite rewriter, MethodDeclaration methodDeclaration, String annotationName) {
 		List<?> modifiers = methodDeclaration.modifiers();
 		for (Object object : modifiers) {
 			if (object instanceof Annotation) {
