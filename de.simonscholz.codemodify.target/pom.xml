@@ -31,9 +31,9 @@
 					<configuration>
 						<artifacts>
 							<artifact>
-								<file>eclipse44.target</file>
+								<file>eclipse46.target</file>
 								<type>target</type>
-								<classifier>eclipse44</classifier>
+								<classifier>eclipse46</classifier>
 							</artifact>
 						</artifacts>
 					</configuration>
