@@ -34,6 +34,8 @@ public class DefaultCodeModifier extends AbstractCodeModifier {
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setSource(cu);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setResolveBindings(true);
+		parser.setBindingsRecovery(true);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(subMonitor.split(1));
 
 		for (ICompilationUnitModifier compilationUnitModifier : modifiers) {
