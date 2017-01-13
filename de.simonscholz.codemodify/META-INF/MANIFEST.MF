@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Junit4Converter
+Bundle-Name: Codemodify
 Bundle-SymbolicName: de.simonscholz.codemodify;singleton:=true
 Bundle-Version: 0.1.0.qualifier
 Require-Bundle: org.eclipse.jdt.core;bundle-version="3.10.0",
