@@ -13,6 +13,7 @@
 		<module>de.simonscholz.codemodify</module>
 		<module>de.simonscholz.codemodify.build.p2</module>
 		<module>de.simonscholz.codemodify.feature</module>
+		<module>de.simonscholz.codemodify.target</module>
 	</modules>
 	
 
