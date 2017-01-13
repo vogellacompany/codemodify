@@ -2,7 +2,7 @@
 <feature
       id="de.simonscholz.codemodify.feature"
       label="Code Modifier Feature"
-      version="0.1.0.qualifier"
+      version="1.2.0"
       provider-name="vogella GmbH">
 
    <description url="https://github.com/SimonScholz/eclipseJUnit4Converter">
