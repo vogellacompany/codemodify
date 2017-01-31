@@ -32,5 +32,21 @@
                </with>
       </definition>
    </extension>
+   <extension
+         point="org.eclipse.jdt.ui.cleanUps">
+      <cleanUp
+            class="de.simonscholz.lambdaconverter.cleanup.LambdaConverterCleanUp"
+            id="de.simonscholz.codemodify.LambdaConverterCleanUp">
+      </cleanUp>
+      <cleanUpConfigurationUI
+            class="de.simonscholz.lambdaconverter.cleanup.LambdaConverterTabPage"
+            cleanUpKind="cleanUp"
+            name="Lambda Converter">
+      </cleanUpConfigurationUI>
+      <cleanUpOptionsInitializer
+            class="de.simonscholz.lambdaconverter.cleanup.LambdaConverterOnSaveOptionsInitializer"
+            cleanUpKind="cleanUp">
+      </cleanUpOptionsInitializer>
+   </extension>
 
 </plugin>
