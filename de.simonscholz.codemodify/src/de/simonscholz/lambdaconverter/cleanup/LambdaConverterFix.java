@@ -315,8 +315,8 @@ public class LambdaConverterFix implements ICleanUpFix {
 			return false;
 		}
 		MethodDeclaration methodDeclaration = (MethodDeclaration) object;
-		Optional<ITypeBinding> interFace = findInterfaceContaining(classInstanceCreation, methodDeclaration.getName());
-		if (!interFace.isPresent()) {
+		Optional<IMethodBinding> methodInInterface = findMethodInInterface(classInstanceCreation, ast.newSimpleName(methodDeclaration.getName() + ADAPTER_METHOD_POSTFIX));
+		if (!methodInInterface.isPresent()) {
 			return false;
 		}
 		LambdaExpression lambdaExpression = ast.newLambdaExpression();
@@ -328,28 +328,27 @@ public class LambdaConverterFix implements ICleanUpFix {
 		List<Statement> statements = body.statements();
 		ASTNode lambdaBody = prepareSingleOrMultiLineLambdaBody(body, statements);
 		lambdaExpression.setBody(getCopyOrReplacement(rewriter, lambdaBody, group));
-        MethodInvocation methodInvocation = prepareMethodInvocation(ast, methodDeclaration, interFace, lambdaExpression);
+        MethodInvocation methodInvocation = prepareMethodInvocation(ast, methodDeclaration, lambdaExpression);
 		
 		// TODO(fap): insert cast if necessary
 		
-		executeChanges(rewriter, importRewrite, classInstanceCreation, group, interFace, methodInvocation);
+		executeChanges(rewriter, importRewrite, classInstanceCreation, group, methodInInterface, methodInvocation);
 		return true;
 	}
 
 	private void executeChanges(ASTRewrite rewriter, ImportRewrite importRewrite,
-			ClassInstanceCreation classInstanceCreation, TextEditGroup group, Optional<ITypeBinding> interFace,
+			ClassInstanceCreation classInstanceCreation, TextEditGroup group, Optional<IMethodBinding> methodInInterface,
 			MethodInvocation methodInvocation) {
 		rewriter.replace(classInstanceCreation, methodInvocation, group);
-		importRewrite.addImport(interFace.get());
+		importRewrite.addStaticImport(methodInInterface.get());
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
 		ITypeBinding superclass = typeBinding.getSuperclass();
+		// TODO(fap): check if import is still needed?
 		importRewrite.removeImport(superclass.getQualifiedName());
 	}
 
-	private MethodInvocation prepareMethodInvocation(AST ast, MethodDeclaration methodDeclaration,
-			Optional<ITypeBinding> interFace, LambdaExpression lambdaExpression) {
+	private MethodInvocation prepareMethodInvocation(AST ast, MethodDeclaration methodDeclaration, LambdaExpression lambdaExpression) {
 		MethodInvocation methodInvocation = ast.newMethodInvocation();
-        methodInvocation.setExpression(ast.newSimpleName(interFace.get().getName()));
         methodInvocation.setName(ast.newSimpleName(methodDeclaration.getName().toString() + ADAPTER_METHOD_POSTFIX));
         methodInvocation.arguments().add(lambdaExpression);
 		return methodInvocation;
@@ -399,7 +398,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 	}
 	
 	// TODO(fap): compare methodname + method args?
-	private Optional<ITypeBinding> findInterfaceContaining(ClassInstanceCreation classInstanceCreation, SimpleName methodName) {
+	private Optional<IMethodBinding> findMethodInInterface(ClassInstanceCreation classInstanceCreation, SimpleName methodName) {
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
 		ITypeBinding superclass = typeBinding.getSuperclass();
 		for (ITypeBinding interFace : superclass.getInterfaces()) {
@@ -407,7 +406,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			for (IMethodBinding iMethodBinding : declaredMethods) {
 				String declaredMethodName = iMethodBinding.getName();
 				if (declaredMethodName.toString().equals(methodName.toString())) {
-					return Optional.of(interFace);
+					return Optional.of(iMethodBinding);
 				}
 			}
 		}
