@@ -287,7 +287,8 @@ public class LambdaConverterFix implements ICleanUpFix {
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		boolean modifiedDocument = false;
 		for (ClassInstanceCreation classInstanceCreation : classInstanceCreations) {
-			modifiedDocument = modifiedDocument || convertToLambda(astRoot, ast, rewriter, importRewrite, classInstanceCreation);
+			boolean converted = convertToLambda(astRoot, ast, rewriter, importRewrite, classInstanceCreation);
+			modifiedDocument = modifiedDocument || converted;
 		}
 		if (modifiedDocument) {
 			ICompilationUnit adapter = (ICompilationUnit) astRoot.getJavaElement().getAdapter(IOpenable.class);
