@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.8"?><target name="eclipse46" sequenceNumber="12">
+<?pde version="3.8"?><target name="eclipse47" sequenceNumber="14">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="4.6.2.M20161124-1400"/>
-<repository location="http://download.eclipse.org/eclipse/updates/4.6"/>
+<unit id="org.eclipse.sdk.ide" version="4.7.0.I20170126-1030"/>
+<repository location="http://download.eclipse.org/eclipse/updates/4.7milestones"/>
 </location>
 </locations>
 </target>
