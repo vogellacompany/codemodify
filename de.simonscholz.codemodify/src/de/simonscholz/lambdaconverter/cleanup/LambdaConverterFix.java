@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -44,6 +45,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
+import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 import org.eclipse.jdt.internal.corext.dom.HierarchicalASTVisitor;
 import org.eclipse.jdt.internal.corext.util.JdtFlags;
@@ -62,9 +64,10 @@ public class LambdaConverterFix implements ICleanUpFix {
 	private static final String ADAPTER_METHOD_POSTFIX = "Adapter";
 	private static final String CLASS_INSTANCE_CREATION_TYPE = "SelectionAdapter";
 	private static final String TEXT_EDIT_GROUP_NAME = "Convert to lambda expression";
-	private static boolean conversionRemovesAnnotations;
 
 	private ArrayList<ClassInstanceCreation> classInstanceCreations;
+
+	private TextEditGroup textEditGroup;
 	
 	public static final class FunctionalAnonymousClassesFinder extends ASTVisitor {
 		private final ArrayList<ClassInstanceCreation> nodes = new ArrayList<>();
@@ -77,7 +80,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		
 		@Override
 		public boolean visit(ClassInstanceCreation node) {
-			if (isFunctionalAnonymous(node) && !conversionRemovesAnnotations) {
+			if (isFunctionalAnonymous(node)) {
 				nodes.add(node);
 			}
 			return true;
@@ -103,7 +106,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 	  /**
 	   * @return an immutable list view of the methods discovered by this visitor
 	   */
-	  public List <MethodDeclaration> getMethods() {
+	  public List<MethodDeclaration> getMethods() {
 	    return Collections.unmodifiableList(methods);
 	  }
 	}
@@ -184,26 +187,21 @@ public class LambdaConverterFix implements ICleanUpFix {
 //		if (ASTNodes.getTargetType(node) == null) // #isInTargetTypeContext
 //			return false;
 		
-		// Check if annotations other than @Override and @Deprecated will be removed
-		checkAnnotationsRemoval(methodBinding);
-
-		return true;
+		return !hasAnnotationExcept(methodBinding, Stream.of("java.lang.Override", "java.lang.Deprecated"));
 	}
 	
-	private static void checkAnnotationsRemoval(IMethodBinding methodBinding) {
-		conversionRemovesAnnotations = false;
+	private static boolean hasAnnotationExcept(IMethodBinding methodBinding, Stream<String> exceptedAnnotations) {
 		IAnnotationBinding[] declarationAnnotations = methodBinding.getAnnotations();
 		for (IAnnotationBinding declarationAnnotation : declarationAnnotations) {
 			ITypeBinding annotationType = declarationAnnotation.getAnnotationType();
 			if (annotationType != null) {
 				String qualifiedName = annotationType.getQualifiedName();
-				System.out.println("Qualified name of annotation: " + qualifiedName);
-				if (!"java.lang.Override".equals(qualifiedName) && !"java.lang.Deprecated".equals(qualifiedName)) { //$NON-NLS-1$ //$NON-NLS-2$
-					conversionRemovesAnnotations = true;
-					return;
+				if (!exceptedAnnotations.anyMatch(exceptedAnnotation -> exceptedAnnotation.equals(qualifiedName))) {
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 	
 	private static class AbortSearchException extends RuntimeException {
@@ -244,8 +242,9 @@ public class LambdaConverterFix implements ICleanUpFix {
 		
 		@Override
 		public boolean visit(ThisExpression node) {
-			if (node.getQualifier() == null)
+			if (node.getQualifier() == null) {
 				throw new AbortSearchException();
+			}
 			return true; // references to outer scope are harmless
 		}
 		
@@ -287,7 +286,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		ImportRewrite importRewrite = ImportRewrite.create(astRoot, true);
 		boolean modifiedDocument = false;
 		for (ClassInstanceCreation classInstanceCreation : classInstanceCreations) {
-			boolean converted = convertToLambda(astRoot, ast, rewriter, importRewrite, classInstanceCreation);
+			boolean converted = prepareConversionToLambda(astRoot, ast, rewriter, importRewrite, classInstanceCreation);
 			modifiedDocument = modifiedDocument || converted;
 		}
 		if (modifiedDocument) {
@@ -307,8 +306,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		return importEdits;
 	}
 
-	private boolean convertToLambda(CompilationUnit cu, AST ast, ASTRewrite rewriter, ImportRewrite importRewrite, ClassInstanceCreation classInstanceCreation) {
-		TextEditGroup group = new TextEditGroup(TEXT_EDIT_GROUP_NAME);
+	private boolean prepareConversionToLambda(CompilationUnit cu, AST ast, ASTRewrite rewriter, ImportRewrite importRewrite, ClassInstanceCreation classInstanceCreation) {
 		AnonymousClassDeclaration anonymTypeDecl = classInstanceCreation.getAnonymousClassDeclaration();
 		List<BodyDeclaration> bodyDeclarations = anonymTypeDecl.bodyDeclarations();
 		Object object = bodyDeclarations.get(0);
@@ -316,7 +314,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			return false;
 		}
 		MethodDeclaration methodDeclaration = (MethodDeclaration) object;
-		Optional<IMethodBinding> methodInInterface = findMethodInInterface(classInstanceCreation, ast.newSimpleName(methodDeclaration.getName() + ADAPTER_METHOD_POSTFIX));
+		Optional<IMethodBinding> methodInInterface = findMethodInInterface(classInstanceCreation, ast.newSimpleName(methodDeclaration.getName() + ADAPTER_METHOD_POSTFIX), methodDeclaration.parameters());
 		if (!methodInInterface.isPresent()) {
 			return false;
 		}
@@ -327,21 +325,21 @@ public class LambdaConverterFix implements ICleanUpFix {
 		prepareLambdaParameters(ast, rewriter, methodParameters, createExplicitlyTypedParameters, lambdaExpression);
 		Block body = methodDeclaration.getBody();
 		List<Statement> statements = body.statements();
-		ASTNode lambdaBody = prepareSingleOrMultiLineLambdaBody(body, statements);
-		lambdaExpression.setBody(getCopyOrReplacement(rewriter, lambdaBody, group));
+		ASTNode lambdaBody = prepareLambdaBody(body, statements);
+		lambdaExpression.setBody(getCopyOrReplacement(rewriter, lambdaBody, textEditGroup));
         MethodInvocation methodInvocation = prepareMethodInvocation(ast, methodDeclaration, lambdaExpression);
 		
 		// TODO(fap): insert cast if necessary
 		
-		executeChanges(rewriter, importRewrite, classInstanceCreation, group, methodInInterface, methodInvocation);
+		prepareChanges(rewriter, importRewrite, classInstanceCreation, textEditGroup, methodInInterface.get(), methodInvocation);
 		return true;
 	}
 
-	private void executeChanges(ASTRewrite rewriter, ImportRewrite importRewrite,
-			ClassInstanceCreation classInstanceCreation, TextEditGroup group, Optional<IMethodBinding> methodInInterface,
+	private void prepareChanges(ASTRewrite rewriter, ImportRewrite importRewrite,
+			ClassInstanceCreation classInstanceCreation, TextEditGroup group, IMethodBinding methodInInterface,
 			MethodInvocation methodInvocation) {
 		rewriter.replace(classInstanceCreation, methodInvocation, group);
-		importRewrite.addStaticImport(methodInInterface.get());
+		importRewrite.addStaticImport(methodInInterface);
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
 		ITypeBinding superclass = typeBinding.getSuperclass();
 		// TODO(fap): check if import is still needed?
@@ -372,7 +370,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		}
 	}
 
-	private ASTNode prepareSingleOrMultiLineLambdaBody(Block body, List<Statement> statements) {
+	private ASTNode prepareLambdaBody(Block body, List<Statement> statements) {
 		ASTNode lambdaBody = body;
 		if (statements.size() == 1) {
 			// use short form with just an expression body if possible
@@ -399,22 +397,20 @@ public class LambdaConverterFix implements ICleanUpFix {
 	}
 	
 	// TODO(fap): compare methodname + method args?
-	private Optional<IMethodBinding> findMethodInInterface(ClassInstanceCreation classInstanceCreation, SimpleName methodName) {
+	private Optional<IMethodBinding> findMethodInInterface(ClassInstanceCreation classInstanceCreation, SimpleName methodName, List<SingleVariableDeclaration> parameters) {
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
 		ITypeBinding superclass = typeBinding.getSuperclass();
 		for (ITypeBinding interFace : superclass.getInterfaces()) {
 			IMethodBinding[] declaredMethods = interFace.getDeclaredMethods();
-			for (IMethodBinding iMethodBinding : declaredMethods) {
-				String declaredMethodName = iMethodBinding.getName();
-				if (declaredMethodName.toString().equals(methodName.toString())) {
-					return Optional.of(iMethodBinding);
+			for (IMethodBinding declaredMethod : declaredMethods) {
+				if (declaredMethod.getName().toString().equals(methodName.toString())) {
+					return Optional.of(declaredMethod);
 				}
 			}
 		}
 		return Optional.empty();
 	}
 
-	
 	/**
 	 * If the given <code>node</code> has already been rewritten, undo that rewrite and return the
 	 * replacement version of the node. Otherwise, return the result of
@@ -437,9 +433,10 @@ public class LambdaConverterFix implements ICleanUpFix {
 		return rewrite.createCopyTarget(node);
 	}
 
-	public LambdaConverterFix(CompilationUnit compilationUnit, ArrayList<ClassInstanceCreation> classInstanceCreations) {
+	public LambdaConverterFix(CompilationUnit compilationUnit, ArrayList<ClassInstanceCreation> classInstanceCreations, TextEditGroup categorizedTextEditGroup) {
 		this.compilationUnit = compilationUnit;
 		this.classInstanceCreations = classInstanceCreations;
+		this.textEditGroup = categorizedTextEditGroup;
 	}
 
 	@Override
@@ -450,7 +447,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			return result;
 		}
 		result.setEdit(edit);
-		result.addTextEditGroup(new CategorizedTextEditGroup(TEXT_EDIT_GROUP_NAME, new GroupCategorySet(new GroupCategory(TEXT_EDIT_GROUP_NAME, TEXT_EDIT_GROUP_NAME, TEXT_EDIT_GROUP_NAME))));
+		result.addTextEditGroup(textEditGroup);
 		return result;
 	}
 
@@ -459,7 +456,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		if (!enabled || (classInstanceCreations.size() <= 0)) {
 			return null;
 		}
-		return new LambdaConverterFix(compilationUnit, classInstanceCreations);
+		return new LambdaConverterFix(compilationUnit, classInstanceCreations, new CategorizedTextEditGroup(TEXT_EDIT_GROUP_NAME, new GroupCategorySet(new GroupCategory(TEXT_EDIT_GROUP_NAME, TEXT_EDIT_GROUP_NAME, TEXT_EDIT_GROUP_NAME))));
 	}
 
 }
