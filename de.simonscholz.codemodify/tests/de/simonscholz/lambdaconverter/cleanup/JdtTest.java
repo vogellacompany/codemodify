@@ -22,7 +22,7 @@ public class JdtTest {
 	protected static final String OUTPUT_FOLDER = "bin";
 	protected static final String SOURCE_FOLDER_NAME = "src";
 	protected TestingEnvironment env;
-	
+
 	@Before
 	public void setUp() {
 		env = new TestingEnvironment();
@@ -33,11 +33,11 @@ public class JdtTest {
 	public void tearDown() {
 		env.resetWorkspace();
 	}
-	
+
 	protected CompilationUnit setupEnvironment(String testClass) throws JavaModelException, CoreException {
 		return setupEnvironment(testClass, JAVA_VERSION);
 	}
-	
+
 	protected CompilationUnit setupEnvironment(String testClass, String javaVersion) throws JavaModelException, CoreException {
 		env.resetWorkspace();
 		IPath projectPath = env.addProject(PROJECT_NAME, javaVersion);

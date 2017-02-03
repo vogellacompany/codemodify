@@ -116,12 +116,12 @@ public class TestingEnvironment {
 		return addClass(packageFragmentRootPath, className, contents);
 	}
 
-/**
- * Add a class folder to the classpath of a project.
- */
-public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isExported) throws JavaModelException {
-	addEntry(projectPath, JavaCore.newLibraryEntry(classFolderPath, null, null, isExported));
-}
+	/**
+	 * Add a class folder to the classpath of a project.
+	 */
+	public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isExported) throws JavaModelException {
+		addEntry(projectPath, JavaCore.newLibraryEntry(classFolderPath, null, null, isExported));
+	}
 
 	/** Adds a package to the given package fragment root
 	 * in the workspace.  The package fragment root is created
@@ -132,7 +132,7 @@ public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isE
 	public IPath addPackage(IPath packageFragmentRootPath, String packageName) {
 		checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
 		IPath path =
-			packageFragmentRootPath.append(packageName.replace('.', IPath.SEPARATOR));
+				packageFragmentRootPath.append(packageName.replace('.', IPath.SEPARATOR));
 		createFolder(path);
 		return path;
 	}
@@ -165,10 +165,10 @@ public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isE
 			createFolder(outputPath);
 		}
 		IClasspathEntry entry = JavaCore.newSourceEntry(
-			path,
-			inclusionPatterns == null ? new Path[0] : inclusionPatterns,
-			exclusionPatterns == null ? new Path[0] : exclusionPatterns,
-			outputPath);
+				path,
+				inclusionPatterns == null ? new Path[0] : inclusionPatterns,
+						exclusionPatterns == null ? new Path[0] : exclusionPatterns,
+								outputPath);
 		addEntry(projectPath, entry);
 		return path;
 	}
@@ -206,8 +206,8 @@ public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isE
 			throw new UnsupportedOperationException("Test framework doesn't support compliance level: " + compliance);
 		}
 		if (requiredComplianceFlag != 0) {
-//			if ((AbstractCompilerTest.getPossibleComplianceLevels() & requiredComplianceFlag) == 0)
-//				throw new RuntimeException("This test requires a " + compliance + " JRE");
+			//			if ((AbstractCompilerTest.getPossibleComplianceLevels() & requiredComplianceFlag) == 0)
+			//				throw new RuntimeException("This test requires a " + compliance + " JRE");
 			IJavaProject javaProject = JavaCore.create(project);
 			Map options = new HashMap();
 			options.put(CompilerOptions.OPTION_Compliance, compilerVersion);
@@ -277,11 +277,11 @@ public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isE
 		addEntry(projectPath, JavaCore.newLibraryEntry(new Path(jar), null, null, isExported));
 	}
 
-public void addLibrary(IPath projectPath, IPath libraryPath, IPath sourceAttachmentPath, IPath sourceAttachmentRootPath)
-		throws JavaModelException {
-	addEntry(projectPath,
-		JavaCore.newLibraryEntry(libraryPath, sourceAttachmentPath,	sourceAttachmentRootPath));
-}
+	public void addLibrary(IPath projectPath, IPath libraryPath, IPath sourceAttachmentPath, IPath sourceAttachmentRootPath)
+			throws JavaModelException {
+		addEntry(projectPath,
+				JavaCore.newLibraryEntry(libraryPath, sourceAttachmentPath,	sourceAttachmentRootPath));
+	}
 	public void addEntry(IPath projectPath, IClasspathEntry entryPath) throws JavaModelException {
 		IClasspathEntry[] classpath = getClasspath(projectPath);
 		IClasspathEntry[] newClaspath = new IClasspathEntry[classpath.length + 1];
@@ -338,23 +338,23 @@ public void addLibrary(IPath projectPath, IPath libraryPath, IPath sourceAttachm
 		Assert.isTrue(b, message);
 	}
 
-public void cleanBuild() {
-	checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
-	try {
-		getWorkspace().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-	} catch (CoreException e) {
-		handle(e);
+	public void cleanBuild() {
+		checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
+		try {
+			getWorkspace().build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+		} catch (CoreException e) {
+			handle(e);
+		}
 	}
-}
 
-public void cleanBuild(String projectName) {
-	checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
-	try {
-		getProject(projectName).build(IncrementalProjectBuilder.CLEAN_BUILD, null);
-	} catch (CoreException e) {
-		handle(e);
+	public void cleanBuild(String projectName) {
+		checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
+		try {
+			getProject(projectName).build(IncrementalProjectBuilder.CLEAN_BUILD, null);
+		} catch (CoreException e) {
+			handle(e);
+		}
 	}
-}
 
 	/** Closes the testing environment and frees up any
 	 * resources.  Once the testing environment is closed,
@@ -444,6 +444,7 @@ public void cleanBuild(String projectName) {
 		final IProject project = this.workspace.getRoot().getProject(projectName);
 		try {
 			IWorkspaceRunnable create = new IWorkspaceRunnable() {
+				@Override
 				public void run(IProgressMonitor monitor) throws CoreException {
 					project.create(null, null);
 					project.open(null);
@@ -457,7 +458,7 @@ public void cleanBuild(String projectName) {
 		}
 		return project;
 	}
-	
+
 	/**
 	 * Safely delete the given resource.
 	 */
@@ -506,17 +507,17 @@ public void cleanBuild(String projectName) {
 	}
 
 	/**
-	* Returns the class path.
-	*/
+	 * Returns the class path.
+	 */
 	public IClasspathEntry[] getClasspath(IPath projectPath) {
 		try {
 			checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
 			JavaProject javaProject = (JavaProject) JavaCore.create(getProject(projectPath));
 			return javaProject.getExpandedClasspath();
-//			IPath[] packageFragmentRootsPath = new IPath[entries.length];
-//			for (int i = 0; i < entries.length; ++i)
-//				packageFragmentRootsPath[i] = entries[i].getPath();
-//			return packageFragmentRootsPath;
+			//			IPath[] packageFragmentRootsPath = new IPath[entries.length];
+			//			for (int i = 0; i < entries.length; ++i)
+			//				packageFragmentRootsPath[i] = entries[i].getPath();
+			//			return packageFragmentRootsPath;
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 			checkAssertion("JavaModelException", false); //$NON-NLS-1$
@@ -525,8 +526,8 @@ public void cleanBuild(String projectName) {
 	}
 
 	/**
-	* Returns the Java Model element for the project.
-	*/
+	 * Returns the Java Model element for the project.
+	 */
 	public IJavaProject getJavaProject(IPath projectPath) {
 		IJavaProject javaProject = JavaCore.create(getProject(projectPath));
 		Assert.isNotNull(javaProject);
@@ -534,8 +535,8 @@ public void cleanBuild(String projectName) {
 	}
 
 	/**
-	* Returns the Java Model element for the project.
-	*/
+	 * Returns the Java Model element for the project.
+	 */
 	public IJavaProject getJavaProject(String projectName) {
 		IJavaProject javaProject = JavaCore.create(getProject(projectName));
 		Assert.isNotNull(javaProject);
@@ -555,69 +556,69 @@ public void cleanBuild(String projectName) {
 		return null;
 	}
 
-//	/**
-//	 * Return all problems with workspace.
-//	 */
-//	public Problem[] getProblems(){
-//		return getProblemsFor(getWorkspaceRootPath());
-//	}
-//
-//	/**
-//	 * Return all problems with the specified element.
-//	 */
-//	public Problem[] getProblemsFor(IPath path){
-//		return getProblemsFor(path, null);
-//	}
-//	/**
-//	 * Return all problems with the specified element.
-//	 */
-//	public Problem[] getProblemsFor(IPath path, String additionalMarkerType){
-//		IResource resource;
-//		if(path.equals(getWorkspaceRootPath())){
-//			resource = getWorkspace().getRoot();
-//		} else {
-//			IProject p = getProject(path);
-//			if(p != null && path.equals(p.getFullPath())) {
-//				resource = getProject(path.lastSegment());
-//			} else if(path.getFileExtension() == null) {
-//				resource = getWorkspace().getRoot().getFolder(path);
-//			} else {
-//				resource = getWorkspace().getRoot().getFile(path);
-//			}
-//		}
-//		try {
-//			ArrayList problems = new ArrayList();
-//			IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-//			for (int i = 0; i < markers.length; i++)
-//				problems.add(new Problem(markers[i]));
-//
-//			markers = resource.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
-//			for (int i = 0; i < markers.length; i++)
-//				problems.add(new Problem(markers[i]));
-//
-//			markers = resource.findMarkers(IJavaModelMarker.TASK_MARKER, true, IResource.DEPTH_INFINITE);
-//			for (int i = 0; i < markers.length; i++)
-//				problems.add(new Problem(markers[i]));
-//
-//			if (additionalMarkerType != null) {
-//				markers = resource.findMarkers(additionalMarkerType, true, IResource.DEPTH_INFINITE);
-//				for (int i = 0; i < markers.length; i++)
-//					problems.add(new Problem(markers[i]));
-//			}
-//
-//			Problem[] result = new Problem[problems.size()];
-//			problems.toArray(result);
-//			Arrays.sort(result, new Comparator() {
-//				public int compare(Object o1, Object o2) {
-//					return o1.toString().compareTo(o2.toString());
-//				}
-//			});
-//			return result;
-//		} catch(CoreException e){
-//			// ignore
-//		}
-//		return new Problem[0];
-//	}
+	//	/**
+	//	 * Return all problems with workspace.
+	//	 */
+	//	public Problem[] getProblems(){
+	//		return getProblemsFor(getWorkspaceRootPath());
+	//	}
+	//
+	//	/**
+	//	 * Return all problems with the specified element.
+	//	 */
+	//	public Problem[] getProblemsFor(IPath path){
+	//		return getProblemsFor(path, null);
+	//	}
+	//	/**
+	//	 * Return all problems with the specified element.
+	//	 */
+	//	public Problem[] getProblemsFor(IPath path, String additionalMarkerType){
+	//		IResource resource;
+	//		if(path.equals(getWorkspaceRootPath())){
+	//			resource = getWorkspace().getRoot();
+	//		} else {
+	//			IProject p = getProject(path);
+	//			if(p != null && path.equals(p.getFullPath())) {
+	//				resource = getProject(path.lastSegment());
+	//			} else if(path.getFileExtension() == null) {
+	//				resource = getWorkspace().getRoot().getFolder(path);
+	//			} else {
+	//				resource = getWorkspace().getRoot().getFile(path);
+	//			}
+	//		}
+	//		try {
+	//			ArrayList problems = new ArrayList();
+	//			IMarker[] markers = resource.findMarkers(IJavaModelMarker.JAVA_MODEL_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+	//			for (int i = 0; i < markers.length; i++)
+	//				problems.add(new Problem(markers[i]));
+	//
+	//			markers = resource.findMarkers(IJavaModelMarker.BUILDPATH_PROBLEM_MARKER, true, IResource.DEPTH_INFINITE);
+	//			for (int i = 0; i < markers.length; i++)
+	//				problems.add(new Problem(markers[i]));
+	//
+	//			markers = resource.findMarkers(IJavaModelMarker.TASK_MARKER, true, IResource.DEPTH_INFINITE);
+	//			for (int i = 0; i < markers.length; i++)
+	//				problems.add(new Problem(markers[i]));
+	//
+	//			if (additionalMarkerType != null) {
+	//				markers = resource.findMarkers(additionalMarkerType, true, IResource.DEPTH_INFINITE);
+	//				for (int i = 0; i < markers.length; i++)
+	//					problems.add(new Problem(markers[i]));
+	//			}
+	//
+	//			Problem[] result = new Problem[problems.size()];
+	//			problems.toArray(result);
+	//			Arrays.sort(result, new Comparator() {
+	//				public int compare(Object o1, Object o2) {
+	//					return o1.toString().compareTo(o2.toString());
+	//				}
+	//			});
+	//			return result;
+	//		} catch(CoreException e){
+	//			// ignore
+	//		}
+	//		return new Problem[0];
+	//	}
 
 
 	/**
@@ -642,6 +643,7 @@ public void cleanBuild(String projectName) {
 				final IMarker[] markers = resource.findMarkers(IJavaModelMarker.TASK_MARKER, true, IResource.DEPTH_INFINITE);
 				if (markers.length > 1) {
 					Arrays.sort(markers, new Comparator() {
+						@Override
 						public int compare(Object o1, Object o2) {
 							IMarker marker1 = (IMarker) o1;
 							IMarker marker2 = (IMarker) o2;
@@ -688,15 +690,15 @@ public void cleanBuild(String projectName) {
 	}
 
 	/**
-	* Returns the core project.
-	*/
+	 * Returns the core project.
+	 */
 	public IProject getProject(String projectName) {
 		return (IProject)this.projects.get(projectName);
 	}
 
 	/**
-	* Returns the core project.
-	*/
+	 * Returns the core project.
+	 */
 	public IProject getProject(IPath projectPath) {
 		return (IProject)this.projects.get(projectPath.lastSegment());
 	}
@@ -707,7 +709,7 @@ public void cleanBuild(String projectName) {
 			this.tmpDirectory = new File(System.getProperty("java.io.tmpdir") +
 					File.separator + "org.eclipse.jdt.core.builder.tests.tmp");
 			if (this.tmpDirectory.exists() && !this.tmpDirectory.isDirectory()) {
-//				Util.delete(this.tmpDirectory);
+				//				Util.delete(this.tmpDirectory);
 			}
 			this.tmpDirectory.mkdir();
 		}
@@ -715,21 +717,21 @@ public void cleanBuild(String projectName) {
 	}
 	void deleteTmpDirectory() {
 		if (this.tmpDirectory != null) {
-//			Util.delete(this.tmpDirectory);
+			//			Util.delete(this.tmpDirectory);
 			this.tmpDirectory = null;
 		}
 	}
 
 	/**
-	* Returns the workspace.
-	*/
+	 * Returns the workspace.
+	 */
 	public IWorkspace getWorkspace() {
 		return this.workspace;
 	}
 
 	/**
-	* Returns the path of workspace root.
-	*/
+	 * Returns the path of workspace root.
+	 */
 	public IPath getWorkspaceRootPath(){
 		return getWorkspace().getRoot().getLocation();
 	}
@@ -749,8 +751,8 @@ public void cleanBuild(String projectName) {
 	}
 
 	/**
-	* Handles a core exception thrown during a testing environment operation
-	*/
+	 * Handles a core exception thrown during a testing environment operation
+	 */
 	private void handleCoreException(CoreException e) {
 		e.printStackTrace();
 		IStatus status = e.getStatus();
@@ -773,8 +775,8 @@ public void cleanBuild(String projectName) {
 			message = buffer.toString();
 		}
 		Assert.isTrue(
-			false,
-			"Core exception in testing environment: " + message); //$NON-NLS-1$
+				false,
+				"Core exception in testing environment: " + message); //$NON-NLS-1$
 	}
 
 	/** Incrementally builds the workspace.  A workspace must be
@@ -800,7 +802,7 @@ public void cleanBuild(String projectName) {
 			handle(e);
 		} catch(Throwable e) {
 			e.printStackTrace();
-	}
+		}
 	}
 
 	public boolean isAutoBuilding() {
@@ -810,7 +812,7 @@ public void cleanBuild(String projectName) {
 	}
 
 	/** Open an empty workspace.
- 	*/
+	 */
 	public void openEmptyWorkspace() {
 		close();
 		openWorkspace();
@@ -885,7 +887,7 @@ public void cleanBuild(String projectName) {
 	public void removePackage(IPath packageFragmentRootPath, String packageName) {
 		checkAssertion("a workspace must be open", this.isOpen); //$NON-NLS-1$
 		IPath path =
-			packageFragmentRootPath.append(packageName.replace('.', IPath.SEPARATOR));
+				packageFragmentRootPath.append(packageName.replace('.', IPath.SEPARATOR));
 		IFolder folder = this.workspace.getRoot().getFolder(path);
 		deleteResource(folder);
 	}
@@ -948,8 +950,8 @@ public void cleanBuild(String projectName) {
 		IPath zipPath = getJarRootPath(projectPath).append(zipName);
 		try {
 			getJavaProject(projectPath)
-				.getPackageFragmentRoot(getWorkspace().getRoot().getFile(zipPath))
-				.close();
+			.getPackageFragmentRoot(getWorkspace().getRoot().getFile(zipPath))
+			.close();
 		} catch (JavaModelException e) {
 			e.printStackTrace();
 		}
@@ -999,29 +1001,29 @@ public void cleanBuild(String projectName) {
 	 * roots.  The builder searches the classpath to
 	 * find the java files it needs during a build.
 	 */
-//	public void setClasspath(IPath projectPath, IPath[] packageFragmentRootsPath) {
-//		try {
-//			checkAssertion("a workspace must be open", fIsOpen); //$NON-NLS-1$
-//			IJavaProject javaProject = JavaCore.create(getProject(projectPath));
-//			IClasspathEntry[] entries =
-//				new IClasspathEntry[packageFragmentRootsPath.length];
-//			for (int i = 0; i < packageFragmentRootsPath.length; ++i) {
-//				IPath path = packageFragmentRootsPath[i];
-//				if ("jar".equals(path.getFileExtension()) //$NON-NLS-1$
-//					|| "zip".equals(path.getFileExtension())) { //$NON-NLS-1$
-//					entries[i] = JavaCore.newLibraryEntry(path, null, null, isExported);
-//				} else if (projectPath.isPrefixOf(packageFragmentRootsPath[i])) {
-//					entries[i] = JavaCore.newSourceEntry(path, IPath[] exclusionPatterns, IPath specificOutputLocation)
-//				} else {
-//					entries[i] = JavaCore.newProjectEntry(path, isExported);
-//				}
-//			}
-//			javaProject.setRawClasspath(entries, null);
-//		} catch (JavaModelException e) {
-//			e.printStackTrace();
-//			checkAssertion("JavaModelException", false); //$NON-NLS-1$
-//		}
-//	}
+	//	public void setClasspath(IPath projectPath, IPath[] packageFragmentRootsPath) {
+	//		try {
+	//			checkAssertion("a workspace must be open", fIsOpen); //$NON-NLS-1$
+	//			IJavaProject javaProject = JavaCore.create(getProject(projectPath));
+	//			IClasspathEntry[] entries =
+	//				new IClasspathEntry[packageFragmentRootsPath.length];
+	//			for (int i = 0; i < packageFragmentRootsPath.length; ++i) {
+	//				IPath path = packageFragmentRootsPath[i];
+	//				if ("jar".equals(path.getFileExtension()) //$NON-NLS-1$
+	//					|| "zip".equals(path.getFileExtension())) { //$NON-NLS-1$
+	//					entries[i] = JavaCore.newLibraryEntry(path, null, null, isExported);
+	//				} else if (projectPath.isPrefixOf(packageFragmentRootsPath[i])) {
+	//					entries[i] = JavaCore.newSourceEntry(path, IPath[] exclusionPatterns, IPath specificOutputLocation)
+	//				} else {
+	//					entries[i] = JavaCore.newProjectEntry(path, isExported);
+	//				}
+	//			}
+	//			javaProject.setRawClasspath(entries, null);
+	//		} catch (JavaModelException e) {
+	//			e.printStackTrace();
+	//			checkAssertion("JavaModelException", false); //$NON-NLS-1$
+	//		}
+	//	}
 
 	public void setAutoBuilding(boolean value) {
 		try {
@@ -1098,7 +1100,7 @@ public void cleanBuild(String projectName) {
 		do {
 			try {
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_AUTO_BUILD, null);
-//				Indexer.getInstance().waitForIndex(null);
+				//				Indexer.getInstance().waitForIndex(null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				handle(e);
@@ -1114,7 +1116,7 @@ public void cleanBuild(String projectName) {
 		do {
 			try {
 				Job.getJobManager().join(ResourcesPlugin.FAMILY_MANUAL_REFRESH, null);
-//				Indexer.getInstance().waitForIndex(null);
+				//				Indexer.getInstance().waitForIndex(null);
 				wasInterrupted = false;
 			} catch (OperationCanceledException e) {
 				handle(e);
@@ -1139,7 +1141,7 @@ public void cleanBuild(String projectName) {
 		IVMInstall vmInstall = JavaRuntime.getDefaultVMInstall();
 		LibraryLocation[] locations = JavaRuntime.getLibraryLocations(vmInstall);
 		for (LibraryLocation element : locations) {
-		 entries.add(JavaCore.newLibraryEntry(element.getSystemLibraryPath(), null, null));
+			entries.add(JavaCore.newLibraryEntry(element.getSystemLibraryPath(), null, null));
 		}
 		entries.addAll(Arrays.asList(javaProject.getRawClasspath()));
 		javaProject.setRawClasspath(entries.toArray(new IClasspathEntry[entries.size()]), null);

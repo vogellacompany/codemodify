@@ -32,6 +32,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 		super();
 	}
 
+	@Override
 	public Composite createContents(Composite parent) {
 		final int numColumns = 4;
 
@@ -83,9 +84,11 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 
 		scroll.addControlListener(new ControlListener() {
 
+			@Override
 			public void controlMoved(ControlEvent e) {
 			}
 
+			@Override
 			public void controlResized(ControlEvent e) {
 				settingsContainer.setSize(settingsContainer.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 			}
@@ -100,7 +103,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 
 	/**
 	 * Creates the preferences for the tab page.
-	 * 
+	 *
 	 * @param composite
 	 *            Composite to create in
 	 */
@@ -116,14 +119,16 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 		updateCheckbox.setSelection(fOptions.isEnabled(LambdaConverterCleanUp.CLEANUP_CONVERT_TO_LAMBDA)); //$NON-NLS-1$
 		updateCheckbox.addSelectionListener(SelectionListener.widgetSelectedAdapter(c -> {
 			fOptions.setOption(LambdaConverterCleanUp.CLEANUP_CONVERT_TO_LAMBDA, //$NON-NLS-1$
-						updateCheckbox.getSelection() ? CleanUpOptions.TRUE : CleanUpOptions.FALSE);
+					updateCheckbox.getSelection() ? CleanUpOptions.TRUE : CleanUpOptions.FALSE);
 		}));
 	}
 
+	@Override
 	public int getCleanUpCount() {
 		return 1;
 	}
 
+	@Override
 	public String getPreview() {
 		String preview = null;
 
@@ -135,7 +140,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 					, "    @PostConstruct"
 					, "    public void createComposite() {"
 					, "        Button button = new Button(parent, SWT.PUSH);"
-					, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER,\n" + 
+					, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER,\n" +
 							"false, false));"
 							, "        button.setText(\"Text\");"
 							, "       button.addSelectionListener(SelectionListener.widgetSelectedAdapter(e -> System.out.println(\"Hello\")));"
@@ -149,7 +154,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 					, "    @PostConstruct"
 					, "    public void createComposite() {"
 					, "        Button button = new Button(parent, SWT.PUSH);"
-					, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER,\n" + 
+					, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER,\n" +
 							"false, false));"
 							, "        button.setText(\"Text\");"
 							, "       button.addSelectionListener(new SelectionAdapter() {"
@@ -167,10 +172,12 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 
 	}
 
+	@Override
 	public int getSelectedCleanUpCount() {
 		return fOptions.isEnabled(LambdaConverterCleanUp.CLEANUP_CONVERT_TO_LAMBDA) ? 1 : 0; //$NON-NLS-1$
 	}
 
+	@Override
 	public void setOptions(CleanUpOptions options) {
 		fOptions = options;
 
@@ -192,6 +199,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 			fMinimalHight = minimalHight;
 		}
 
+		@Override
 		public Point computeSize(Composite composite, int wHint, int hHint, boolean force) {
 			if (wHint != SWT.DEFAULT && hHint != SWT.DEFAULT) {
 				return new Point(wHint, hHint);
@@ -229,6 +237,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 			return new Point(x, y);
 		}
 
+		@Override
 		public void layout(Composite composite, boolean force) {
 			Rectangle rect = composite.getClientArea();
 			Control[] children = composite.getChildren();

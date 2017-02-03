@@ -2,27 +2,18 @@ package de.simonscholz.lambdaconverter.cleanup;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
-import org.eclipse.jdt.core.tests.builder.TestingEnvironment;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
 import org.eclipse.jface.text.BadLocationException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class LambdaConverterCleanUpFixTest extends JdtTest {
@@ -127,15 +118,15 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "    public void createComposite() {"
 				, "        Button button = new Button(parent, SWT.PUSH);"
 				, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));"
-						, "        button.setText(\"Text\");"
-						, "       button.addSelectionListener(new SelectionAdapter() {"
-						, "	       @Override"
-						, "	       public void widgetSelected(SelectionEvent e) {"
-						, "	           System.out.println(\"Hello\");"
-						, "	       }"
-						, "	   });"
-						, "    }"
-						, "}"
+				, "        button.setText(\"Text\");"
+				, "       button.addSelectionListener(new SelectionAdapter() {"
+				, "	       @Override"
+				, "	       public void widgetSelected(SelectionEvent e) {"
+				, "	           System.out.println(\"Hello\");"
+				, "	       }"
+				, "	   });"
+				, "    }"
+				, "}"
 				));
 
 		ICleanUpFix cleanUp = LambdaConverterFix.createCleanUp(astRoot, true);
@@ -157,7 +148,7 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "}");
 		assertEquals(expected, iCU.getSource());
 	}
-	
+
 	@Test
 	public void createChange_selectionAdapterImportStillNeededWidgetSelectedAdapter_selectionAdapterImportPreserved() throws JavaModelException, CoreException, BadLocationException, IOException, URISyntaxException {
 		CompilationUnit astRoot = setupEnvironment(String.join("\n"
@@ -168,15 +159,15 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "    public void createComposite() {"
 				, "        Button button = new Button(parent, SWT.PUSH);"
 				, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));"
-						, "        button.setText(\"Text\");"
-						, "        SelectionAdapter adapter = button.addSelectionListener(new SelectionAdapter() {"
-						, "	       @Override"
-						, "	       public void widgetSelected(SelectionEvent e) {"
-						, "	           System.out.println(\"Hello\");"
-						, "	       }"
-						, "	   });"
-						, "    }"
-						, "}"
+				, "        button.setText(\"Text\");"
+				, "        SelectionAdapter adapter = button.addSelectionListener(new SelectionAdapter() {"
+				, "	       @Override"
+				, "	       public void widgetSelected(SelectionEvent e) {"
+				, "	           System.out.println(\"Hello\");"
+				, "	       }"
+				, "	   });"
+				, "    }"
+				, "}"
 				));
 
 		ICleanUpFix cleanUp = LambdaConverterFix.createCleanUp(astRoot, true);
@@ -200,7 +191,7 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "}");
 		assertEquals(expected, iCU.getSource());
 	}
-	
+
 	@Test
 	public void createChange_selectionAdapterImportStillNeededBCofSuperClass_selectionAdapterImportPreserved() throws JavaModelException, CoreException, BadLocationException, IOException, URISyntaxException {
 		CompilationUnit astRoot = setupEnvironment(String.join("\n"
@@ -211,15 +202,15 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "    public void createComposite() {"
 				, "        Button button = new Button(parent, SWT.PUSH);"
 				, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));"
-						, "        button.setText(\"Text\");"
-						, "        button.addSelectionListener(new SelectionAdapter() {"
-						, "	       @Override"
-						, "	       public void widgetSelected(SelectionEvent e) {"
-						, "	           System.out.println(\"Hello\");"
-						, "	       }"
-						, "	   });"
-						, "    }"
-						, "}"
+				, "        button.setText(\"Text\");"
+				, "        button.addSelectionListener(new SelectionAdapter() {"
+				, "	       @Override"
+				, "	       public void widgetSelected(SelectionEvent e) {"
+				, "	           System.out.println(\"Hello\");"
+				, "	       }"
+				, "	   });"
+				, "    }"
+				, "}"
 				));
 
 		ICleanUpFix cleanUp = LambdaConverterFix.createCleanUp(astRoot, true);
@@ -254,15 +245,15 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "    public void createComposite() {"
 				, "        Button button = new Button(parent, SWT.PUSH);"
 				, "        button.setLayoutData(new GridData(SWT.BEGINNING, SWT.CENTER, false, false));"
-						, "        button.setText(\"Text\");"
-						, "        button.addSelectionListener(new SelectionAdapter() {"
-						, "	       @Override"
-						, "	       public void widgetSelected(SelectionEvent e) {"
-						, "	           System.out.println(\"Hello\");"
-						, "	       }"
-						, "	   });"
-						, "    }"
-						, "}"
+				, "        button.setText(\"Text\");"
+				, "        button.addSelectionListener(new SelectionAdapter() {"
+				, "	       @Override"
+				, "	       public void widgetSelected(SelectionEvent e) {"
+				, "	           System.out.println(\"Hello\");"
+				, "	       }"
+				, "	   });"
+				, "    }"
+				, "}"
 				));
 
 		ICleanUpFix cleanUp = LambdaConverterFix.createCleanUp(astRoot, true);
@@ -285,5 +276,5 @@ public class LambdaConverterCleanUpFixTest extends JdtTest {
 				, "    }"
 				, "}");
 		assertEquals(expected, iCU.getSource());
-	}	
+	}
 }

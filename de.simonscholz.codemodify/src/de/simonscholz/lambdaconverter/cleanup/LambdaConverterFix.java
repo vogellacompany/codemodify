@@ -44,14 +44,11 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SuperFieldAccess;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.ThisExpression;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
-import org.eclipse.jdt.internal.corext.dom.ASTNodes;
 import org.eclipse.jdt.internal.corext.dom.Bindings;
 import org.eclipse.jdt.internal.corext.dom.HierarchicalASTVisitor;
 import org.eclipse.jdt.internal.corext.util.JdtFlags;
@@ -68,9 +65,9 @@ import org.eclipse.text.edits.TextEditGroup;
 
 
 public class LambdaConverterFix implements ICleanUpFix {
-	
+
 	private CompilationUnit compilationUnit;
-	
+
 	private static final String ADAPTER_METHOD_POSTFIX = "Adapter";
 	private static final String CLASS_INSTANCE_CREATION_TYPE = "SelectionAdapter";
 	private static final String TEXT_EDIT_GROUP_NAME = "Convert to lambda expression";
@@ -78,16 +75,16 @@ public class LambdaConverterFix implements ICleanUpFix {
 	private ArrayList<ClassInstanceCreation> classInstanceCreations;
 
 	private TextEditGroup textEditGroup;
-	
+
 	public static final class FunctionalAnonymousClassesFinder extends ASTVisitor {
 		private final ArrayList<ClassInstanceCreation> nodes = new ArrayList<>();
-		
+
 		public static ArrayList<ClassInstanceCreation> perform(ASTNode node) {
 			FunctionalAnonymousClassesFinder finder = new FunctionalAnonymousClassesFinder();
 			node.accept(finder);
 			return finder.nodes;
 		}
-		
+
 		@Override
 		public boolean visit(ClassInstanceCreation node) {
 			if (isFunctionalAnonymous(node)) {
@@ -96,31 +93,31 @@ public class LambdaConverterFix implements ICleanUpFix {
 			return true;
 		}
 	}
-	
+
 
 	public static final class MethodDeclarationFinder extends ASTVisitor {
-	  private final List <MethodDeclaration> methods = new ArrayList <> ();
-	
-	  public static List<MethodDeclaration> perform(ASTNode node) {
-		  MethodDeclarationFinder finder = new MethodDeclarationFinder();
-		  node.accept(finder);
-		  return finder.getMethods();
-	  }
-	  
-	  @Override
-	  public boolean visit (final MethodDeclaration method) {
-	    methods.add (method);
-	    return super.visit(method);
-	  }
-	
-	  /**
-	   * @return an immutable list view of the methods discovered by this visitor
-	   */
-	  public List<MethodDeclaration> getMethods() {
-	    return Collections.unmodifiableList(methods);
-	  }
+		private final List <MethodDeclaration> methods = new ArrayList <> ();
+
+		public static List<MethodDeclaration> perform(ASTNode node) {
+			MethodDeclarationFinder finder = new MethodDeclarationFinder();
+			node.accept(finder);
+			return finder.getMethods();
+		}
+
+		@Override
+		public boolean visit (final MethodDeclaration method) {
+			methods.add (method);
+			return super.visit(method);
+		}
+
+		/**
+		 * @return an immutable list view of the methods discovered by this visitor
+		 */
+		public List<MethodDeclaration> getMethods() {
+			return Collections.unmodifiableList(methods);
+		}
 	}
-	
+
 	private static final class AnnotationsFinder extends ASTVisitor {
 		static boolean hasAnnotations(SingleVariableDeclaration methodParameter) {
 			try {
@@ -147,7 +144,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			throw new AbortSearchException();
 		}
 	}
-	
+
 	private static final class ImportRelevanceFinder extends ASTVisitor {
 		private static String qualifiedName;
 
@@ -174,7 +171,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			}
 			return super.visit(node);
 		}
-				
+
 		@Override
 		public boolean visit(SingleVariableDeclaration node) {
 			String qualifiedName2 = node.resolveBinding().getType().getQualifiedName();
@@ -195,7 +192,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			return super.visit(node);
 		}
 	}
-	
+
 	static boolean isFunctionalAnonymous(ClassInstanceCreation node) {
 		ITypeBinding typeBinding= node.resolveTypeBinding();
 		if (typeBinding == null) {
@@ -205,12 +202,12 @@ public class LambdaConverterFix implements ICleanUpFix {
 		if (!CLASS_INSTANCE_CREATION_TYPE.equals(node.getType().toString())) {
 			return false;
 		}
-	
+
 		AnonymousClassDeclaration anonymTypeDecl = node.getAnonymousClassDeclaration();
 		if (anonymTypeDecl == null || anonymTypeDecl.resolveBinding() == null) {
 			return false;
 		}
-		
+
 		List<BodyDeclaration> bodyDeclarations = anonymTypeDecl.bodyDeclarations();
 		// cannot convert if there are fields or additional methods
 		if (bodyDeclarations.size() != 1) {
@@ -229,7 +226,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		}
 		// generic lambda expressions are not allowed
 		if (methodBinding.isGenericMethod()) {
-			return false;			
+			return false;
 		}
 
 		int modifiers= methodBinding.getModifiers();
@@ -241,13 +238,13 @@ public class LambdaConverterFix implements ICleanUpFix {
 		if (SuperThisReferenceFinder.hasReference(methodDecl)) {
 			return false;
 		}
-		
-//		if (ASTNodes.getTargetType(node) == null) // #isInTargetTypeContext
-//			return false;
-		
+
+		//		if (ASTNodes.getTargetType(node) == null) // #isInTargetTypeContext
+		//			return false;
+
 		return !hasAnnotationExcept(methodBinding, Stream.of("java.lang.Override", "java.lang.Deprecated"));
 	}
-	
+
 	private static boolean hasAnnotationExcept(IMethodBinding methodBinding, Stream<String> exceptedAnnotations) {
 		IAnnotationBinding[] declarationAnnotations = methodBinding.getAnnotations();
 		for (IAnnotationBinding declarationAnnotation : declarationAnnotations) {
@@ -261,15 +258,15 @@ public class LambdaConverterFix implements ICleanUpFix {
 		}
 		return false;
 	}
-	
+
 	private static class AbortSearchException extends RuntimeException {
 		private static final long serialVersionUID= 1L;
 	}
-	
+
 	private static final class SuperThisReferenceFinder extends HierarchicalASTVisitor {
 		private ITypeBinding functionalInterface;
 		private MethodDeclaration methodDeclaration;
-		
+
 		static boolean hasReference(MethodDeclaration node) {
 			try {
 				SuperThisReferenceFinder finder = new SuperThisReferenceFinder();
@@ -282,22 +279,22 @@ public class LambdaConverterFix implements ICleanUpFix {
 			}
 			return false;
 		}
-		
+
 		@Override
 		public boolean visit(AnonymousClassDeclaration node) {
 			return false;
 		}
-		
+
 		@Override
 		public boolean visit(BodyDeclaration node) {
 			return false;
 		}
-		
+
 		@Override
 		public boolean visit(MethodDeclaration node) {
 			return node == methodDeclaration;
 		}
-		
+
 		@Override
 		public boolean visit(ThisExpression node) {
 			if (node.getQualifier() == null) {
@@ -305,7 +302,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 			}
 			return true; // references to outer scope are harmless
 		}
-		
+
 		@Override
 		public boolean visit(SuperMethodInvocation node) {
 			if (node.getQualifier() == null) {
@@ -318,14 +315,14 @@ public class LambdaConverterFix implements ICleanUpFix {
 			}
 			return true; // references to outer scopes are harmless
 		}
-		
+
 		@Override
 		public boolean visit(SuperFieldAccess node) {
 			if (node.getQualifier() == null)
 				throw new AbortSearchException();
 			return true; // references to outer scope are harmless
 		}
-		
+
 		@Override
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding binding = node.resolveMethodBinding();
@@ -355,7 +352,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		}
 		return null;
 	}
-	
+
 	protected TextEdit createTextEdit(ICompilationUnit cu, IProgressMonitor monitor, final ASTRewrite rewriter,
 			ImportRewrite importRewrite) throws CoreException, JavaModelException {
 		TextEdit importEdits = importRewrite.rewriteImports(monitor);
@@ -385,10 +382,10 @@ public class LambdaConverterFix implements ICleanUpFix {
 		List<Statement> statements = body.statements();
 		ASTNode lambdaBody = prepareLambdaBody(body, statements);
 		lambdaExpression.setBody(getCopyOrReplacement(rewriter, lambdaBody, textEditGroup));
-        MethodInvocation methodInvocation = prepareMethodInvocation(ast, methodDeclaration, lambdaExpression);
-		
+		MethodInvocation methodInvocation = prepareMethodInvocation(ast, methodDeclaration, lambdaExpression);
+
 		// TODO(fap): insert cast if necessary
-		
+
 		try {
 			prepareChanges(cu, rewriter, importRewrite, classInstanceCreation, textEditGroup, methodInInterface.get(), methodInvocation);
 		} catch (MalformedTreeException | CoreException | BadLocationException e) {
@@ -436,8 +433,8 @@ public class LambdaConverterFix implements ICleanUpFix {
 
 	private MethodInvocation prepareMethodInvocation(AST ast, MethodDeclaration methodDeclaration, LambdaExpression lambdaExpression) {
 		MethodInvocation methodInvocation = ast.newMethodInvocation();
-        methodInvocation.setName(ast.newSimpleName(methodDeclaration.getName().toString() + ADAPTER_METHOD_POSTFIX));
-        methodInvocation.arguments().add(lambdaExpression);
+		methodInvocation.setName(ast.newSimpleName(methodDeclaration.getName().toString() + ADAPTER_METHOD_POSTFIX));
+		methodInvocation.arguments().add(lambdaExpression);
 		return methodInvocation;
 	}
 
@@ -483,7 +480,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		}
 		return false;
 	}
-	
+
 	// TODO(fap): compare methodname + method args?
 	private Optional<IMethodBinding> findMethodInInterface(ClassInstanceCreation classInstanceCreation, SimpleName methodName, List<SingleVariableDeclaration> parameters) {
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
@@ -503,7 +500,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 	 * If the given <code>node</code> has already been rewritten, undo that rewrite and return the
 	 * replacement version of the node. Otherwise, return the result of
 	 * {@link ASTRewrite#createCopyTarget(ASTNode)}.
-	 * 
+	 *
 	 * @param rewrite ASTRewrite for the given node
 	 * @param node the node to get the replacement or to create a copy placeholder for
 	 * @param group the edit group which collects the corresponding text edits, or <code>null</code>
