@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.simonscholz.codemodify.feature_1.2.0.jar" id="de.simonscholz.codemodify.feature" version="1.2.0">
+   <feature url="features/de.simonscholz.codemodify.feature_1.3.0.jar" id="de.simonscholz.codemodify.feature" version="1.3.0">
       <category name="de.simonscholz.codemodify"/>
    </feature>
    <category-def name="de.simonscholz.codemodify" label="Code Modify Tools"/>
