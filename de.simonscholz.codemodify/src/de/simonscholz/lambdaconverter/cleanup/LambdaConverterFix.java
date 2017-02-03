@@ -392,8 +392,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		try {
 			prepareChanges(cu, rewriter, importRewrite, classInstanceCreation, textEditGroup, methodInInterface.get(), methodInvocation);
 		} catch (MalformedTreeException | CoreException | BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return false;
 		}
 		return true;
 	}
