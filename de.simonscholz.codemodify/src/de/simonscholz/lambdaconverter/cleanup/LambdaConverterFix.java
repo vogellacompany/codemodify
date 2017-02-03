@@ -8,12 +8,14 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.Block;
@@ -26,6 +28,7 @@ import org.eclipse.jdt.core.dom.IAnnotationBinding;
 import org.eclipse.jdt.core.dom.IBinding;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -34,14 +37,17 @@ import org.eclipse.jdt.core.dom.Modifier;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SuperFieldAccess;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.ThisExpression;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.VariableDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.rewrite.ASTRewrite;
 import org.eclipse.jdt.core.dom.rewrite.ImportRewrite;
 import org.eclipse.jdt.core.refactoring.CompilationUnitChange;
@@ -50,9 +56,13 @@ import org.eclipse.jdt.internal.corext.dom.Bindings;
 import org.eclipse.jdt.internal.corext.dom.HierarchicalASTVisitor;
 import org.eclipse.jdt.internal.corext.util.JdtFlags;
 import org.eclipse.jdt.ui.cleanup.ICleanUpFix;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.Document;
 import org.eclipse.ltk.core.refactoring.CategorizedTextEditGroup;
 import org.eclipse.ltk.core.refactoring.GroupCategory;
 import org.eclipse.ltk.core.refactoring.GroupCategorySet;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditGroup;
 
@@ -135,6 +145,54 @@ public class LambdaConverterFix implements ICleanUpFix {
 		@Override
 		public boolean visit(SingleMemberAnnotation node) {
 			throw new AbortSearchException();
+		}
+	}
+	
+	private static final class ImportRelevanceFinder extends ASTVisitor {
+		private static String qualifiedName;
+
+		static boolean stillNeeded(CompilationUnit cu, String qualifiedName) {
+			ImportRelevanceFinder.qualifiedName = qualifiedName;
+			try {
+				ImportRelevanceFinder finder = new ImportRelevanceFinder();
+				cu.accept(finder);
+			} catch (AbortSearchException e) {
+				return true;
+			}
+			return false;
+		}
+
+		@Override
+		public boolean visit(VariableDeclarationFragment node) {
+			IVariableBinding resolveBinding = node.resolveBinding();
+			if (null == resolveBinding) {
+				return super.visit(node);
+			}
+			String qualifiedName2 = resolveBinding.getType().getQualifiedName();
+			if (qualifiedName2.equals(qualifiedName)) {
+				throw new AbortSearchException();
+			}
+			return super.visit(node);
+		}
+				
+		@Override
+		public boolean visit(SingleVariableDeclaration node) {
+			String qualifiedName2 = node.resolveBinding().getType().getQualifiedName();
+			if (qualifiedName2.equals(qualifiedName)) {
+				throw new AbortSearchException();
+			}
+			SelectionAdapter adapter = new SelectionAdapter() {
+			};
+			return super.visit(node);
+		}
+
+		@Override
+		public boolean visit(SimpleType node) {
+			String qualifiedName2 = node.resolveBinding().getQualifiedName();
+			if (qualifiedName2.equals(qualifiedName)) {
+				throw new AbortSearchException();
+			}
+			return super.visit(node);
 		}
 	}
 	
@@ -331,19 +389,50 @@ public class LambdaConverterFix implements ICleanUpFix {
 		
 		// TODO(fap): insert cast if necessary
 		
-		prepareChanges(rewriter, importRewrite, classInstanceCreation, textEditGroup, methodInInterface.get(), methodInvocation);
+		try {
+			prepareChanges(cu, rewriter, importRewrite, classInstanceCreation, textEditGroup, methodInInterface.get(), methodInvocation);
+		} catch (MalformedTreeException | CoreException | BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return true;
 	}
 
-	private void prepareChanges(ASTRewrite rewriter, ImportRewrite importRewrite,
+	private void prepareChanges(CompilationUnit cu, ASTRewrite rewriter, ImportRewrite importRewrite,
 			ClassInstanceCreation classInstanceCreation, TextEditGroup group, IMethodBinding methodInInterface,
-			MethodInvocation methodInvocation) {
+			MethodInvocation methodInvocation) throws CoreException, MalformedTreeException, BadLocationException {
 		rewriter.replace(classInstanceCreation, methodInvocation, group);
 		importRewrite.addStaticImport(methodInInterface);
 		ITypeBinding typeBinding = classInstanceCreation.resolveTypeBinding();
 		ITypeBinding superclass = typeBinding.getSuperclass();
-		// TODO(fap): check if import is still needed?
-		importRewrite.removeImport(superclass.getQualifiedName());
+		handleImportRemoval(cu, rewriter, importRewrite, superclass);
+	}
+
+	private void handleImportRemoval(CompilationUnit cu, ASTRewrite rewriter, ImportRewrite importRewrite,
+			ITypeBinding superclass) throws CoreException, JavaModelException, BadLocationException {
+		ICompilationUnit icu = (ICompilationUnit) cu.getJavaElement().getAdapter(IOpenable.class);
+		TextEdit importEdits = importRewrite.rewriteImports(new NullProgressMonitor());
+		TextEdit edits = rewriter.rewriteAST();
+		importEdits.addChild(edits);
+		// apply the text edits to the compilation unit
+		String source = icu.getSource();
+		Document document = new Document(source);
+		importEdits.apply(document);
+
+		String oldContents = icu.getBuffer().getContents();
+		icu.getBuffer().setContents(document.get());
+		icu.save(new NullProgressMonitor(), true);
+		ASTParser parser = ASTParser.newParser(AST.JLS8);
+		parser.setResolveBindings(true);
+		parser.setKind(ASTParser.K_COMPILATION_UNIT);
+		parser.setBindingsRecovery(true);
+		parser.setSource(icu);
+		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
+		if (!ImportRelevanceFinder.stillNeeded(astRoot, superclass.getQualifiedName())) {
+			importRewrite.removeImport(superclass.getQualifiedName());
+		}
+		icu.getBuffer().setContents(oldContents);
+		icu.save(new NullProgressMonitor(), true);
 	}
 
 	private MethodInvocation prepareMethodInvocation(AST ast, MethodDeclaration methodDeclaration, LambdaExpression lambdaExpression) {

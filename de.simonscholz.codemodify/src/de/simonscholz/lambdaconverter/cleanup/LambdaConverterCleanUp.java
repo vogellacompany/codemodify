@@ -8,6 +8,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.ui.cleanup.CleanUpContext;
 import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
 import org.eclipse.jdt.ui.cleanup.CleanUpRequirements;
@@ -46,6 +47,9 @@ public class LambdaConverterCleanUp implements ICleanUp {
 
 	@Override
 	public RefactoringStatus checkPreConditions(IJavaProject project, ICompilationUnit[] compilationUnits, IProgressMonitor monitor) throws CoreException {
+		if (!JavaModelUtil.is18OrHigher(project)) {
+			return RefactoringStatus.createFatalErrorStatus("Project must be Java 1.8 or higher.");
+		}
 		return new RefactoringStatus();
 	}
 

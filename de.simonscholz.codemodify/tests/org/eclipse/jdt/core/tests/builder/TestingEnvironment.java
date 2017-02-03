@@ -187,19 +187,19 @@ public void addClassFolder(IPath projectPath, IPath classFolderPath, boolean isE
 		int requiredComplianceFlag = 0;
 		String compilerVersion = null;
 		if ("1.5".equals(compliance)) {
-//			requiredComplianceFlag = AbstractCompilerTest.F_1_5;
+			requiredComplianceFlag = 15;
 			compilerVersion = CompilerOptions.VERSION_1_5;
 		}
 		else if ("1.6".equals(compliance)) {
-//			requiredComplianceFlag = AbstractCompilerTest.F_1_6;
+			requiredComplianceFlag = 16;
 			compilerVersion = CompilerOptions.VERSION_1_6;
 		}
 		else if ("1.7".equals(compliance)) {
-//			requiredComplianceFlag = AbstractCompilerTest.F_1_7;
+			requiredComplianceFlag = 17;
 			compilerVersion = CompilerOptions.VERSION_1_7;
 		}
 		else if ("1.8".equals(compliance)) {
-//			requiredComplianceFlag = AbstractCompilerTest.F_1_8;
+			requiredComplianceFlag = 18;
 			compilerVersion = CompilerOptions.VERSION_1_8;
 		}
 		else if (!"1.4".equals(compliance) && !"1.3".equals(compliance)) {
