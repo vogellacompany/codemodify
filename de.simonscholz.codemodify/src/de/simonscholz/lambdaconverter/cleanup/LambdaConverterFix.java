@@ -148,7 +148,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 	private static final class ImportRelevanceFinder extends ASTVisitor {
 		private static String qualifiedName;
 
-		static boolean stillNeeded(CompilationUnit cu, String qualifiedName) {
+		static boolean isStillNeeded(CompilationUnit cu, String qualifiedName) {
 			ImportRelevanceFinder.qualifiedName = qualifiedName;
 			try {
 				ImportRelevanceFinder finder = new ImportRelevanceFinder();
@@ -410,6 +410,7 @@ public class LambdaConverterFix implements ICleanUpFix {
 		TextEdit importEdits = importRewrite.rewriteImports(new NullProgressMonitor());
 		TextEdit edits = rewriter.rewriteAST();
 		importEdits.addChild(edits);
+		
 		// apply the text edits to the compilation unit
 		String source = icu.getSource();
 		Document document = new Document(source);
@@ -417,18 +418,16 @@ public class LambdaConverterFix implements ICleanUpFix {
 
 		String oldContents = icu.getBuffer().getContents();
 		icu.getBuffer().setContents(document.get());
-		icu.save(new NullProgressMonitor(), true);
 		ASTParser parser = ASTParser.newParser(AST.JLS8);
 		parser.setResolveBindings(true);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setBindingsRecovery(true);
 		parser.setSource(icu);
 		CompilationUnit astRoot = (CompilationUnit) parser.createAST(null);
-		if (!ImportRelevanceFinder.stillNeeded(astRoot, superclass.getQualifiedName())) {
+		if (!ImportRelevanceFinder.isStillNeeded(astRoot, superclass.getQualifiedName())) {
 			importRewrite.removeImport(superclass.getQualifiedName());
 		}
 		icu.getBuffer().setContents(oldContents);
-		icu.save(new NullProgressMonitor(), true);
 	}
 
 	private MethodInvocation prepareMethodInvocation(AST ast, MethodDeclaration methodDeclaration, LambdaExpression lambdaExpression) {
