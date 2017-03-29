@@ -1,5 +1,9 @@
 package de.simonscholz.lambdaconverter.cleanup;
 
+import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
+import org.eclipse.jdt.ui.cleanup.ICleanUpConfigurationUI;
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.layout.PixelConverter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -16,12 +20,6 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.layout.PixelConverter;
-
-import org.eclipse.jdt.ui.cleanup.CleanUpOptions;
-import org.eclipse.jdt.ui.cleanup.ICleanUpConfigurationUI;
 
 public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 
@@ -172,6 +170,7 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 
 	}
 
+
 	@Override
 	public int getSelectedCleanUpCount() {
 		return fOptions.isEnabled(LambdaConverterCleanUp.CLEANUP_CONVERT_TO_LAMBDA) ? 1 : 0; //$NON-NLS-1$
@@ -208,8 +207,8 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 			int x = fMinimalWidth;
 			int y = fMinimalHight;
 			Control[] children = composite.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Point size = children[i].computeSize(SWT.DEFAULT, SWT.DEFAULT, force);
+			for (Control element : children) {
+				Point size = element.computeSize(SWT.DEFAULT, SWT.DEFAULT, force);
 				x = Math.max(x, size.x);
 				y = Math.max(y, size.y);
 			}
@@ -241,8 +240,8 @@ public class LambdaConverterTabPage implements ICleanUpConfigurationUI {
 		public void layout(Composite composite, boolean force) {
 			Rectangle rect = composite.getClientArea();
 			Control[] children = composite.getChildren();
-			for (int i = 0; i < children.length; i++) {
-				children[i].setSize(rect.width, rect.height);
+			for (Control element : children) {
+				element.setSize(rect.width, rect.height);
 			}
 		}
 	}
