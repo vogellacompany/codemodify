@@ -98,12 +98,6 @@ public class LambdaConverterFix implements ICleanUpFix {
 	public static final class MethodDeclarationFinder extends ASTVisitor {
 		private final List <MethodDeclaration> methods = new ArrayList <> ();
 
-		public static List<MethodDeclaration> perform(ASTNode node) {
-			MethodDeclarationFinder finder = new MethodDeclarationFinder();
-			node.accept(finder);
-			return finder.getMethods();
-		}
-
 		@Override
 		public boolean visit (final MethodDeclaration method) {
 			methods.add (method);
@@ -318,8 +312,9 @@ public class LambdaConverterFix implements ICleanUpFix {
 
 		@Override
 		public boolean visit(SuperFieldAccess node) {
-			if (node.getQualifier() == null)
+			if (node.getQualifier() == null) {
 				throw new AbortSearchException();
+			}
 			return true; // references to outer scope are harmless
 		}
 
@@ -327,8 +322,9 @@ public class LambdaConverterFix implements ICleanUpFix {
 		public boolean visit(MethodInvocation node) {
 			IMethodBinding binding = node.resolveMethodBinding();
 			if (binding != null && !JdtFlags.isStatic(binding) && node.getExpression() == null
-					&& Bindings.isSuperType(binding.getDeclaringClass(), functionalInterface, false))
+					&& Bindings.isSuperType(binding.getDeclaringClass(), functionalInterface, false)) {
 				throw new AbortSearchException();
+			}
 			return true;
 		}
 	}
