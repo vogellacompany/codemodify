@@ -2,8 +2,8 @@
 <?pde version="3.8"?><target name="eclipse47" sequenceNumber="14">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.sdk.ide" version="4.7.0.I20170126-1030"/>
-<repository location="http://download.eclipse.org/eclipse/updates/4.7milestones"/>
+<unit id="org.eclipse.sdk.ide" version="4.7.0.I20170612-0950"/>
+<repository location="http://download.eclipse.org/eclipse/updates/4.7"/>
 </location>
 </locations>
 </target>
