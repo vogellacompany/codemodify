@@ -1,8 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <extensions>
-<extension>
-<groupId>org.eclipse.tycho.extras</groupId>
-<artifactId>tycho-pomless</artifactId>
-<version>0.26.0</version>
-</extension>
+    <extension>
+        <groupId>org.eclipse.tycho</groupId>
+        <artifactId>tycho-build</artifactId>
+        <version>4.0.2</version>
+    </extension>
 </extensions>
