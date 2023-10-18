@@ -29,7 +29,4 @@ Features
 Usage
 =====
 
-Just right click on a java class, a package or a whole Java project in Eclipse and click on the "Convert to JUnit 4" menu entry.
-
-
-![Package Explorer Context Menu](http://i60.tinypic.com/jku7ur.png)
+Just right click on a java class, a package or a whole Java project in Eclipse and click on the "Source"->"Convert to JUnit 4" menu entry.
