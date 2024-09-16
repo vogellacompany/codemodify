@@ -1,6 +1,5 @@
 package de.simonscholz.junit4converter.handlers;
 
-import javax.inject.Named;
 
 import org.eclipse.e4.core.di.annotations.Execute;
 import org.eclipse.e4.core.di.annotations.Optional;
@@ -8,6 +7,7 @@ import org.eclipse.e4.ui.services.IServiceConstants;
 import org.eclipse.jface.viewers.IStructuredSelection;
 
 import de.simonscholz.junit4converter.jobs.JUnit4ConversionJob;
+import jakarta.inject.Named;
 
 public class ConvertToJUnit4Handler {
 
